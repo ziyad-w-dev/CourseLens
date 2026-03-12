@@ -26,7 +26,8 @@ public class Topic {
     private int labHours;
 
     // AI generated fields
-    private String focusLevel; // MASTER_IT, APPLY_IT, KNOW_IT
+    @Enumerated(EnumType.STRING)
+    private FocusLevel focusLevel; // MASTER_IT, APPLY_IT, KNOW_IT
 
     private String focusReason; // why it matters for this track
 

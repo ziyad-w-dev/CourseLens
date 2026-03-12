@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService {
 
-    private final UserRepository userRepository;
+    private final UserRepository userRepository; // to access the CRUD methods
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {

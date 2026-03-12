@@ -28,7 +28,7 @@ public class JwtUtil { // this will be a helper class Utility class we will call
 
     // to create a token given the email and role
     public String generateToken(String email, String role) {
-        return Jwts.builder()  // jwts utill class
+        return Jwts.builder()  // JWTs util class
                 .setSubject(email) // we set the sub to the email
                 .claim("role", role) // claim so we add data in the payload
                 .setIssuedAt(new Date()) // the time we created this token
@@ -56,7 +56,7 @@ public class JwtUtil { // this will be a helper class Utility class we will call
         return Jwts.parserBuilder() // parser to read not build
                 .setSigningKey(getKey())// take the key so it can verify the signature to check if someone tamper with it
                 .build()// finish setting the parser
-                .parseClaimsJws(token) // verify the signature and check if expired if anything wrong throws Exp
+                .parseClaimsJws(token) // verify the signature and check if expired or if anything wrong throws Exp
                 .getBody(); // return the token payload
     }
 }
