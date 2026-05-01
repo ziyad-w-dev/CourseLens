@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface TopicRepository extends JpaRepository {
+public interface TopicRepository extends JpaRepository<Topic, Long> {
 
     List<Topic> findByCourse(Course course);
 }

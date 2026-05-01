@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface QuizRepository extends JpaRepository {
+public interface QuizRepository extends JpaRepository<Quiz, Long> {
 
     List<Quiz> findByTopic(Topic topic);
 }

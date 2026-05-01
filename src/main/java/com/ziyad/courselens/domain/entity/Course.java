@@ -26,7 +26,7 @@ public class Course {
     @Column(nullable = false, unique = true)
     private String code; // SENG351
 
-    private String program; // Software Engineering
+    private Program program; // Software Engineering
 
     private int level; // 5
 

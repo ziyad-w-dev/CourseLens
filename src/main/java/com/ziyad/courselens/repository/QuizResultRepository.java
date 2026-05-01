@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface QuizResultRepository extends JpaRepository {
+public interface QuizResultRepository extends JpaRepository<QuizResult, Long> {
 
     List<QuizResult> findByStudent(User student);
     List<QuizResult> findByQuiz(Quiz quiz);
