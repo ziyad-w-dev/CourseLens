@@ -2,7 +2,6 @@ package com.ziyad.courselens.domain.dto;
 
 
 import com.ziyad.courselens.domain.entity.FocusLevel;
-import com.ziyad.courselens.domain.entity.Track;
 import lombok.Data;
 
 @Data
@@ -15,6 +14,5 @@ public class TopicResponse {
     private FocusLevel focusLevel;
     private String focusReason;
     private String realWorldExample;
-    private Track targetTrack;
 
 }

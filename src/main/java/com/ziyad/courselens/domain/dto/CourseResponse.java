@@ -19,4 +19,5 @@ public class CourseResponse {
     private List<TopicResponse> topics;
     private LocalDateTime createdAt;
 
+
 }

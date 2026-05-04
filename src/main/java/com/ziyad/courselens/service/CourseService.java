@@ -11,15 +11,21 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.apache.pdfbox.Loader;
+import com.ziyad.courselens.domain.entity.TopicFocus;
+import com.ziyad.courselens.repository.TopicFocusRepository;
+import java.util.Map;
+import java.util.stream.Collectors;
+import com.ziyad.courselens.domain.dto.TopicResponse;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
 public class CourseService {
 
+    private final TopicFocusRepository topicFocusRepository;
     private final CourseRepository courseRepository;
     private final TopicRepository topicRepository;
     private final UserRepository userRepository;
@@ -41,16 +47,16 @@ public class CourseService {
         // Step 1 - get the doctor
         User doctor = getCurrentUser();
 
-        // Step 2 - extract text from PDF using PDFBox
+        // Step 2 - extract text from PDF
         PDDocument document = Loader.loadPDF(file.getBytes());
         PDFTextStripper stripper = new PDFTextStripper();
         String pdfText = stripper.getText(document);
         document.close();
 
-        // Step 3 - send text to AI and get back structured topics
+        // Step 3 - AI returns one entry per (topic, track) combination
         List<TopicAiResponse> aiTopics = aiService.extractTopics(pdfText);
 
-        // Step 4 - build and save the Course entity
+        // Step 4 - build and save the Course
         Course course = new Course();
         course.setDoctor(doctor);
         course.setTitle(aiTopics.get(0).getCourseTitle());
@@ -58,18 +64,34 @@ public class CourseService {
         course.setProgram(doctor.getProgram());
         courseRepository.save(course);
 
-        // Step 5 - build and save each Topic entity
-        for (TopicAiResponse aiTopic : aiTopics) {
+        // Step 5 - group AI responses by topic title
+        // (e.g. all 5 "SQL Joins" entries grouped together)
+        Map<String, List<TopicAiResponse>> grouped = aiTopics.stream()
+                .collect(Collectors.groupingBy(TopicAiResponse::getTitle));
+
+        // Step 6 - for each group, save ONE Topic + multiple TopicFocus rows
+        for (Map.Entry<String, List<TopicAiResponse>> entry : grouped.entrySet()) {
+            List<TopicAiResponse> group = entry.getValue();
+            TopicAiResponse first = group.get(0);
+
+            // Save the Topic (shared info)
             Topic topic = new Topic();
-            topic.setTitle(aiTopic.getTitle());
-            topic.setLectureHours(aiTopic.getLectureHours());
-            topic.setLabHours(aiTopic.getLabHours());
-            topic.setFocusLevel(aiTopic.getFocusLevel());
-            topic.setFocusReason(aiTopic.getFocusReason());
-            topic.setRealWorldExample(aiTopic.getRealWorldExample());
-            topic.setTargetTrack(aiTopic.getTargetTrack());
+            topic.setTitle(first.getTitle());
+            topic.setLectureHours(first.getLectureHours());
+            topic.setLabHours(first.getLabHours());
             topic.setCourse(course);
             topicRepository.save(topic);
+
+            // Save one TopicFocus per track
+            for (TopicAiResponse ai : group) {
+                TopicFocus focus = new TopicFocus();
+                focus.setTopic(topic);
+                focus.setTargetTrack(ai.getTargetTrack());
+                focus.setFocusLevel(ai.getFocusLevel());
+                focus.setFocusReason(ai.getFocusReason());
+                focus.setRealWorldExample(ai.getRealWorldExample());
+                topicFocusRepository.save(focus);
+            }
         }
 
         return mapper.toCourseResponse(course);
@@ -91,14 +113,21 @@ public class CourseService {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        // filter topics by student's track
-        List<Topic> filteredTopics = course.getTopics()
-                .stream()
-                .filter(t -> t.getTargetTrack() == student.getTrack())
+        // For each topic, find the focus matching the student's track,
+        // then build a TopicResponse merging both
+        List<TopicResponse> topicResponses = course.getTopics().stream()
+                .map(topic -> {
+                    TopicFocus focus = topicFocusRepository
+                            .findByTopicAndTargetTrack(topic, student.getTrack())
+                            .orElseThrow(() -> new RuntimeException(
+                                    "No focus found for topic " + topic.getId()));
+                    return mapper.toTopicResponse(topic, focus);
+                })
                 .collect(Collectors.toList());
 
-        course.setTopics(filteredTopics);
-        return mapper.toCourseResponse(course);
+        CourseResponse response = mapper.toCourseResponse(course);
+        response.setTopics(topicResponses);
+        return response;
     }
 
     // ─── Doctor: get their own courses ────────────────────────────────

@@ -25,16 +25,8 @@ public class Topic {
 
     private int labHours;
 
-    // AI generated fields
-    @Enumerated(EnumType.STRING)
-    private FocusLevel focusLevel; // MASTER_IT, APPLY_IT, KNOW_IT
-
-    private String focusReason; // why it matters for this track
-
-    private String realWorldExample;
-
-    @Enumerated(EnumType.STRING)
-    private Track targetTrack; // which track this analysis is for
+    @OneToMany(mappedBy = "topic", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TopicFocus> focuses = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "course_id")
