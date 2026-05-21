@@ -26,6 +26,8 @@ public class Course {
     @Column(nullable = false, unique = true)
     private String code; // SENG351
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Program program; // Software Engineering
 
     private int level; // 5

@@ -25,8 +25,10 @@ public class TopicFocus {
     @Enumerated(EnumType.STRING)
     private FocusLevel focusLevel;
 
+    @Column(nullable = false, length = 1000)
     private String focusReason;
 
+    @Column(nullable = false, length = 1000)
     private String realWorldExample;
 
 }

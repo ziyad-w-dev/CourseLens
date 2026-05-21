@@ -1,5 +1,7 @@
 package com.ziyad.courselens.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ziyad.courselens.domain.dto.TopicAiResponse;
 import lombok.RequiredArgsConstructor;
@@ -64,6 +66,7 @@ public class AiService {
             9. focusReason and realWorldExample MUST be different for each track — tailored to that career.
             10. If lectureHours or labHours are missing for a topic, use 0.
             11. Return ONLY valid JSON. No markdown, no explanations, no code fences, no preamble.
+            12. Topic title MUST be concise: max 100 characters. Use the EXACT topic name as written in the PDF — no extra description, no explanation, no subtitle.
             ═══════════════════════════════════════════
             OUTPUT FORMAT (JSON ARRAY):
             ═══════════════════════════════════════════
@@ -124,13 +127,27 @@ public class AiService {
             // Step 6 - send the POST request
             ResponseEntity<String> response = restTemplate.postForEntity(fullUrl, entity, String.class);
 
-            // Step 7 - for now, just log it so we can see what came back
-            System.out.println("=== GEMINI RAW RESPONSE ===");
-            System.out.println(response.getBody());
-            System.out.println("=== END ===");
+            // Step 7
+            // Parse #1 - turn Gemini's raw response into a navigable tree
+            JsonNode root = objectMapper.readTree(response.getBody());
 
-            // Step 8 - parsing comes in Step 5
-            return List.of();
+            // dig inward: candidates → [0] → content → parts → [0] → text
+            String innerJson = root
+                    .path("candidates")
+                    .get(0)
+                    .path("content")
+                    .path("parts")
+                    .get(0)
+                    .path("text")
+                    .asText();
+
+            // Parse #2 - turn the inner JSON string into a List of TopicAiResponse
+            List<TopicAiResponse> topics = objectMapper.readValue(
+                    innerJson,
+                    new TypeReference<List<TopicAiResponse>>() {}
+            );
+
+            return topics;
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to call Gemini API: " + e.getMessage(), e);
