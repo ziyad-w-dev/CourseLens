@@ -7,8 +7,6 @@ import lombok.Data;
 @Data
 public class TopicAiResponse {
 
-    private String courseTitle;
-    private String courseCode;
     private String title;
     private int lectureHours;
     private int labHours;

@@ -1,9 +1,8 @@
 package com.ziyad.courselens.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ziyad.courselens.domain.dto.TopicAiResponse;
+import com.ziyad.courselens.domain.dto.CourseAiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -31,64 +30,92 @@ public class AiService {
 
     private String buildPrompt(String pdfText) {
         return """
-            You are an expert curriculum designer for a personalized learning platform.
-            
-            Your task is to read the following Course Specification text and extract its topics.
-            For EACH topic, you must generate 5 separate entries — one for each career track.
-            
-            ═══════════════════════════════════════════
-            TRACKS (use these EXACT values):
-            ═══════════════════════════════════════════
-            - BACKEND_DEVELOPER
-            - FRONTEND_DEVELOPER
-            - DATA_ANALYST
-            - AI_ML_ENGINEER
-            - FULL_STACK
-            
-            ═══════════════════════════════════════════
-            FOCUS LEVELS (use these EXACT values):
-            ═══════════════════════════════════════════
-            - MASTER_IT  → topic is critical for this track; deep mastery required
-            - APPLY_IT   → topic is useful for this track; practical understanding required
-            - KNOW_IT    → topic is general knowledge for this track; awareness is enough
-            
-            ═══════════════════════════════════════════
-            RULES:
-            ═══════════════════════════════════════════
-            1. Extract topics ONLY from the "Course Content" section (usually labeled "C. Course Content").
-            2. IGNORE headers, footers, page numbers, watermarks, and Arabic/decorative text.
-            3. IGNORE sections like Learning Outcomes, Assessment Activities, References, Approval Data.
-            4. courseTitle and courseCode come from the cover page or "Course Identification" section.
-            5. For each topic in the Course Content section, output EXACTLY 5 entries (one per track above).
-            6. Decide focusLevel based on how relevant the topic is to that track in real industry work.
-            7. focusReason: 1-2 sentences explaining WHY this topic matters (or doesn't) for this specific track.
-            8. realWorldExample: a concrete, practical example of using this topic in this track's daily work.
-            9. focusReason and realWorldExample MUST be different for each track — tailored to that career.
-            10. If lectureHours or labHours are missing for a topic, use 0.
-            11. Return ONLY valid JSON. No markdown, no explanations, no code fences, no preamble.
-            12. Topic title MUST be concise: max 100 characters. Use the EXACT topic name as written in the PDF — no extra description, no explanation, no subtitle.
-            ═══════════════════════════════════════════
-            OUTPUT FORMAT (JSON ARRAY):
-            ═══════════════════════════════════════════
-            [
-              {
-                "courseTitle": "string",
-                "courseCode": "string",
-                "title": "string (topic title)",
-                "lectureHours": number,
-                "labHours": number,
-                "focusLevel": "MASTER_IT" | "APPLY_IT" | "KNOW_IT",
-                "focusReason": "string",
-                "realWorldExample": "string",
-                "targetTrack": "BACKEND_DEVELOPER" | "FRONTEND_DEVELOPER" | "DATA_ANALYST" | "AI_ML_ENGINEER" | "FULL_STACK"
-              }
-            ]
-            
-            ═══════════════════════════════════════════
-            PDF TEXT:
-            ═══════════════════════════════════════════
-            %s
-            """.formatted(pdfText);
+        You are an expert curriculum designer for a personalized learning platform.
+        
+        Your task is to read the following Course Specification text and extract:
+        (1) course-level personalization for 5 career tracks
+        (2) per-topic personalization for the same 5 tracks
+        
+        ═══════════════════════════════════════════
+        TRACKS (use these EXACT values):
+        ═══════════════════════════════════════════
+        - BACKEND_DEVELOPER
+        - FRONTEND_DEVELOPER
+        - DATA_ANALYST
+        - AI_ML_ENGINEER
+        - FULL_STACK
+        
+        ═══════════════════════════════════════════
+        TOPIC-LEVEL FOCUS LEVELS (use these EXACT values):
+        ═══════════════════════════════════════════
+        - MASTER_IT  → topic is critical for this track; deep mastery required
+        - APPLY_IT   → topic is useful for this track; practical understanding required
+        - KNOW_IT    → topic is general knowledge for this track; awareness is enough
+        
+        ═══════════════════════════════════════════
+        COURSE-LEVEL PERSONALIZATION
+        ═══════════════════════════════════════════
+        In addition to per-topic focus, generate 5 course-level entries — one per track.
+        Course-level entries have:
+        - focusReason: 1-2 sentences on why THIS ENTIRE COURSE matters for this track,
+          even if some topics are less central. Always frame it positively — every course
+          contributes to a developer's growth. Never suggest skipping or de-prioritizing
+          the course as a whole.
+        - realWorldExample: a concrete career scenario where someone in this track
+          applies what they learned from this entire course.
+        
+        Course-level entries do NOT have a focusLevel — only topic-level entries do.
+        
+        ═══════════════════════════════════════════
+        RULES:
+        ═══════════════════════════════════════════
+        1. Extract topics ONLY from the "Course Content" section (usually labeled "C. Course Content").
+        2. IGNORE headers, footers, page numbers, watermarks, and Arabic/decorative text.
+        3. IGNORE sections like Learning Outcomes, Assessment Activities, References, Approval Data.
+        4. courseTitle and courseCode come from the cover page or "Course Identification" section.
+        5. For each topic in the Course Content section, output EXACTLY 5 topic entries (one per track).
+        6. Output EXACTLY 5 courseFocus entries (one per track).
+        7. Decide focusLevel based on how relevant the topic is to that track in real industry work.
+        8. focusReason: 1-2 sentences explaining WHY this topic matters (or doesn't) for this specific track.
+        9. realWorldExample: a concrete, practical example of using this topic in this track's daily work.
+        10. focusReason and realWorldExample MUST be different for each track — tailored to that career.
+        11. If lectureHours or labHours are missing for a topic, use 0.
+        12. Return ONLY valid JSON. No markdown, no explanations, no code fences, no preamble.
+        13. Topic title MUST be concise: max 100 characters. Use the EXACT topic name as written in the PDF — no extra description, no explanation, no subtitle.
+        14. Course-level focusReason must NEVER use language like "skip", "ignore", "not relevant",
+            "low priority", or imply the course is unimportant for any track. Always be encouraging.
+        
+        ═══════════════════════════════════════════
+        OUTPUT FORMAT (JSON OBJECT):
+        ═══════════════════════════════════════════
+        {
+          "courseTitle": "string",
+          "courseCode": "string",
+          "courseFocus": [
+            {
+              "targetTrack": "BACKEND_DEVELOPER" | "FRONTEND_DEVELOPER" | "DATA_ANALYST" | "AI_ML_ENGINEER" | "FULL_STACK",
+              "focusReason": "string",
+              "realWorldExample": "string"
+            }
+          ],
+          "topics": [
+            {
+              "title": "string (topic title)",
+              "lectureHours": number,
+              "labHours": number,
+              "focusLevel": "MASTER_IT" | "APPLY_IT" | "KNOW_IT",
+              "focusReason": "string",
+              "realWorldExample": "string",
+              "targetTrack": "BACKEND_DEVELOPER" | "FRONTEND_DEVELOPER" | "DATA_ANALYST" | "AI_ML_ENGINEER" | "FULL_STACK"
+            }
+          ]
+        }
+        
+        ═══════════════════════════════════════════
+        PDF TEXT:
+        ═══════════════════════════════════════════
+        %s
+        """.formatted(pdfText);
     }
 
     private Map<String, Object> buildRequestBody(String prompt) {
@@ -106,7 +133,7 @@ public class AiService {
         );
     }
 
-    public List<TopicAiResponse> extractTopics(String pdfText) {
+    public CourseAiResponse extractCourseData(String pdfText) {
         try {
             // Step 1 - build the prompt
             String prompt = buildPrompt(pdfText);
@@ -141,13 +168,13 @@ public class AiService {
                     .path("text")
                     .asText();
 
-            // Parse #2 - turn the inner JSON string into a List of TopicAiResponse
-            List<TopicAiResponse> topics = objectMapper.readValue(
+            // Parse #2 - turn the inner JSON string into ONE CourseAiResponse object
+            CourseAiResponse courseData = objectMapper.readValue(
                     innerJson,
-                    new TypeReference<List<TopicAiResponse>>() {}
+                    CourseAiResponse.class
             );
 
-            return topics;
+            return courseData;
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to call Gemini API: " + e.getMessage(), e);

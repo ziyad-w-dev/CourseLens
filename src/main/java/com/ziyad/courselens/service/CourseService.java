@@ -26,8 +26,10 @@ public class CourseService {
     private final CourseRepository courseRepository;
     private final TopicRepository topicRepository;
     private final UserRepository userRepository;
+    private final CourseFocusRepository courseFocusRepository;
     private final CourselensMapper mapper;
     private final AiService aiService;
+
 
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext()
@@ -40,23 +42,38 @@ public class CourseService {
     public CourseResponse uploadCourse(MultipartFile file) throws IOException {
         User doctor = getCurrentUser();
 
+        // Step 1 - extract PDF text
         PDDocument document = Loader.loadPDF(file.getBytes());
         PDFTextStripper stripper = new PDFTextStripper();
         String pdfText = stripper.getText(document);
         document.close();
 
-        List<TopicAiResponse> aiTopics = aiService.extractTopics(pdfText);
+        // Step 2 - send PDF to Gemini, get back the wrapper
+        CourseAiResponse aiData = aiService.extractCourseData(pdfText);
 
+        // Step 3 - save the course itself
         Course course = new Course();
         course.setDoctor(doctor);
-        course.setTitle(aiTopics.get(0).getCourseTitle());
-        course.setCode(aiTopics.get(0).getCourseCode());
+        course.setTitle(aiData.getCourseTitle());
+        course.setCode(aiData.getCourseCode());
         course.setProgram(doctor.getProgram());
         courseRepository.save(course);
 
-        Map<String, List<TopicAiResponse>> grouped = aiTopics.stream()
+        // Step 4 - save the 5 course-level focus rows (one per track)
+        for (CourseFocusAiResponse aiFocus : aiData.getCourseFocus()) {
+            CourseFocus courseFocus = new CourseFocus();
+            courseFocus.setCourse(course);
+            courseFocus.setTargetTrack(aiFocus.getTargetTrack());
+            courseFocus.setFocusReason(aiFocus.getFocusReason());
+            courseFocus.setRealWorldExample(aiFocus.getRealWorldExample());
+            courseFocusRepository.save(courseFocus);
+        }
+
+        // Step 5 - group topic entries by title (each title has 5 entries, one per track)
+        Map<String, List<TopicAiResponse>> grouped = aiData.getTopics().stream()
                 .collect(Collectors.groupingBy(TopicAiResponse::getTitle));
 
+        // Step 6 - for each topic group: save the Topic, then save its 5 TopicFocus rows
         for (Map.Entry<String, List<TopicAiResponse>> entry : grouped.entrySet()) {
             List<TopicAiResponse> group = entry.getValue();
             TopicAiResponse first = group.get(0);

@@ -14,10 +14,11 @@ public class CourseResponse {
     private String title;
     private String code;
     private Program program;
-    private String level;
+    private int level;
     private String description;
+    private String focusReason;
+    private String realWorldExample;
     private List<TopicResponse> topics;
     private LocalDateTime createdAt;
-
 
 }
