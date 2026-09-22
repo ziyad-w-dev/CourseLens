@@ -3,7 +3,11 @@ package com.ziyad.courselens.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ziyad.courselens.domain.dto.CourseAiResponse;
+import com.ziyad.courselens.exception.InvalidFileException;
 import lombok.RequiredArgsConstructor;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -11,7 +15,9 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -179,5 +185,20 @@ public class AiService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to call Gemini API: " + e.getMessage(), e);
         }
+    }
+
+    public CourseAiResponse courseAiAnalyze(MultipartFile file) {
+        String pdfText;
+
+        // Step 1 - extract PDF text (try-with-resources auto-closes the document)
+        try (PDDocument document = Loader.loadPDF(file.getBytes())) {
+            PDFTextStripper stripper = new PDFTextStripper();
+            pdfText = stripper.getText(document);
+        } catch (IOException e) {
+            throw new InvalidFileException("File is not a valid PDF");
+        }
+
+        // Step 2 - send PDF to Gemini (OUTSIDE the try — not a file problem)
+        return extractCourseData(pdfText);
     }
 }

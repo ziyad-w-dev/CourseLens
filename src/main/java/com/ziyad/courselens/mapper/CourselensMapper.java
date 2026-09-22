@@ -12,9 +12,6 @@ public interface CourselensMapper {
 
     CourseResponse toCourseResponse(Course course);
 
-    QuizResponse toQuizResponse(Quiz quiz);
-
-    QuizResultResponse toQuizResultResponse(QuizResult quizResult);
 
     @Mapping(source = "topic.id", target = "id")
     @Mapping(source = "topic.title", target = "title")

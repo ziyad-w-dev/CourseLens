@@ -33,6 +33,4 @@ public class Topic {
     @JoinColumn(name = "course_id")
     private Course course;
 
-    @OneToMany(mappedBy = "topic", cascade = CascadeType.ALL)
-    private List<Quiz> quizzes = new ArrayList<>();
 }

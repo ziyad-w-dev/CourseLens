@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "courses")
+@Table(name = "courses", uniqueConstraints = @UniqueConstraint(columnNames = {"institution_id", "code"}))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,7 +23,7 @@ public class Course {
     @Column(nullable = false)
     private String title; // Database Management Systems
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String code; // SENG351
 
     @Enumerated(EnumType.STRING)
@@ -40,6 +40,13 @@ public class Course {
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<Topic> topics = new ArrayList<>();
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    private List<CourseFocus> courseFocuses = new ArrayList<>();
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name ="institution_id",nullable = false)
+    private Institution institution;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

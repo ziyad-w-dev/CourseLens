@@ -16,17 +16,17 @@ public class TestController {
 
     private final AiService aiService;
 
-    @GetMapping("/ai")
-    public List<TopicAiResponse> testAi() {
-        String sampleText = """
-            Course Content
-            
-            1. Overview of The SQL Query Language
-            2. Introduction to Relational Databases
-            3. Joins and Subqueries
-            4. Database Normalization
-            """;
-
-        return aiService.extractTopics(sampleText);
-    }
+//    @GetMapping("/ai")
+//    public List<TopicAiResponse> testAi() {
+//        String sampleText = """
+//            Course Content
+//
+//            1. Overview of The SQL Query Language
+//            2. Introduction to Relational Databases
+//            3. Joins and Subqueries
+//            4. Database Normalization
+//            """;
+//
+//        return aiService.extractTopics(sampleText);
+//    }
 }

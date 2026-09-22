@@ -1,7 +1,6 @@
 package com.ziyad.courselens.repository;
 
 
-import com.ziyad.courselens.domain.entity.FocusLevel;
 import com.ziyad.courselens.domain.entity.Topic;
 import com.ziyad.courselens.domain.entity.TopicFocus;
 import com.ziyad.courselens.domain.entity.Track;

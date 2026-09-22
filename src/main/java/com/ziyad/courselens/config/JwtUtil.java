@@ -16,30 +16,35 @@ import java.util.Date;
 public class JwtUtil { // this will be a helper class Utility class we will call it whenever we need it
 
     @Value("${jwt.secret}") // tells spring to look in application.properties for that value of this String
-    private String secret; // or secret key
+    private String secret; // our secret key
 
     @Value("${jwt.expiration}")
     private long expirationMs; // token exp time
 
-    // private helper method to take or string key and turn it into bytes the library can use
+    // private helper method to take our key as a string and turn it into bytes the library can use
     private Key getKey() {
         return Keys.hmacShaKeyFor(secret.getBytes()); //hmacShaKeyFor will create a key object so we use it in other methods
     }
 
     // to create a token given the email and role
-    public String generateToken(String email, String role) {
+    public String generateToken(Long userId, String role,Long institutionId) {
         return Jwts.builder()  // JWTs util class
-                .setSubject(email) // we set the sub to the email
-                .claim("role", role) // claim so we add data in the payload
+                .setSubject(String.valueOf(userId)) // we set the sub to the email
+                .claim("role", role)// claim so we add data in the payload
+                .claim("institutionId", institutionId)
                 .setIssuedAt(new Date()) // the time we created this token
                 .setExpiration(new Date(System.currentTimeMillis() + expirationMs)) // calculating exp time
                 .signWith(getKey(), SignatureAlgorithm.HS256) // creating the token signature
                 .compact(); // put everything together and return the JWT String
     }
 
+    public Long extractInstitutionId(String token) {
+        return getClaims(token).get("institutionId", Long.class);
+    }
+
     // this will only be called after isTokenValid return true means we don't need to catch Exp
-    public String extractEmail(String token) {
-        return getClaims(token).getSubject();
+    public Long extractUserId(String token) {
+        return Long.valueOf(getClaims(token).getSubject());
     }
 
     public boolean isTokenValid(String token) {

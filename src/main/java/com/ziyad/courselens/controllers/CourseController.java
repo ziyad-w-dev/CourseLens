@@ -19,7 +19,7 @@ public class CourseController {
 
     @PostMapping("/upload")
     @PreAuthorize("hasRole('DOCTOR')")
-    public CourseResponse uploadCourse(@RequestParam("file") MultipartFile file) throws IOException {
+    public CourseResponse uploadCourse(@RequestParam("file") MultipartFile file) {
         return courseService.uploadCourse(file);
     }
 

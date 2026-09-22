@@ -2,7 +2,9 @@ package com.ziyad.courselens.domain.entity;
 
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -33,13 +35,18 @@ public class User implements UserDetails {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    private Program program; // null for doctors
+    @Column(nullable = false)
+    private Program program;
 
     @Enumerated(EnumType.STRING)
     private Role role; // STUDENT or DOCTOR
 
     @Enumerated(EnumType.STRING)
-    private Track track; // NULL for Doctors
+    private Track track;// NULL for Doctors
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name ="institution_id",nullable = false)
+    private Institution institution;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
