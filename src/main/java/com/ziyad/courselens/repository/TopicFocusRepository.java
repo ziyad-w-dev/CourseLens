@@ -1,9 +1,7 @@
 package com.ziyad.courselens.repository;
 
 
-import com.ziyad.courselens.domain.entity.Topic;
-import com.ziyad.courselens.domain.entity.TopicFocus;
-import com.ziyad.courselens.domain.entity.Track;
+import com.ziyad.courselens.domain.entity.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -18,6 +16,8 @@ public interface TopicFocusRepository extends JpaRepository<TopicFocus, Long> {
     Optional<TopicFocus> findByTopicAndTargetTrack(Topic topic, Track targetTrack);
 
     List<TopicFocus> findByTopic(Topic topic);
+
+    long countByTopicCourseAndTargetTrackAndFocusLevel(Course course, Track targetTrack, FocusLevel focusLevel);
 
 
 }

@@ -3,10 +3,10 @@ package com.ziyad.courselens.service;
 import com.ziyad.courselens.domain.dto.*;
 import com.ziyad.courselens.domain.entity.Institution;
 import com.ziyad.courselens.domain.entity.Role;
-import com.ziyad.courselens.domain.entity.Track;
 import com.ziyad.courselens.domain.entity.User;
 import com.ziyad.courselens.exception.EmailAlreadyExistsException;
 import com.ziyad.courselens.exception.InvalidCredentialsException;
+import com.ziyad.courselens.exception.InvalidTrackException;
 import com.ziyad.courselens.exception.ResourceNotFoundException;
 import com.ziyad.courselens.repository.InstitutionRepository;
 import com.ziyad.courselens.repository.UserRepository;
@@ -36,16 +36,17 @@ public class AuthService {
         Institution institution = institutionRepository.findByDomain(domain)
                 .orElseThrow(() -> new ResourceNotFoundException("No registered institution for domain: " + domain));
 
+        // 3 - students must choose a track
+        if (request.getRole() == Role.STUDENT && request.getTrack() == null) {
+            throw new InvalidTrackException("Students must choose a track");
+        }
+
         // --- Passed all checks, now build ---
 
         User user = new User();
 
-        // track: students with no track default to NOT_SURE; doctors stay null
-        if (request.getRole() == Role.STUDENT && request.getTrack() == null) {
-            user.setTrack(Track.NOT_SURE);
-        } else {
-            user.setTrack(request.getTrack());
-        }
+        // students keep their chosen track; doctors never have one
+        user.setTrack(request.getRole() == Role.STUDENT ? request.getTrack() : null);
 
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
@@ -57,9 +58,10 @@ public class AuthService {
         // save
         userRepository.save(user);
 
-        // token
+        // token + what the frontend header needs (name, program)
         String token = jwtUtil.generateToken(user.getId(), user.getRole().name(), institution.getId());
-        return new AuthResponse(token, user.getRole(), user.getTrack());
+        return new AuthResponse(token, user.getRole(), user.getTrack(),
+                user.getFullName(), user.getProgram());
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -73,8 +75,9 @@ public class AuthService {
             throw new InvalidCredentialsException("Invalid email or password");
         }
 
-        // Step 3 - generate token and return
-        String token = jwtUtil.generateToken(user.getId(), user.getRole().name(),user.getInstitution().getId());
-        return new AuthResponse(token, user.getRole(),user.getTrack());
+        // Step 3 - generate token and return it with what the frontend header needs
+        String token = jwtUtil.generateToken(user.getId(), user.getRole().name(), user.getInstitution().getId());
+        return new AuthResponse(token, user.getRole(), user.getTrack(),
+                user.getFullName(), user.getProgram());
     }
 }

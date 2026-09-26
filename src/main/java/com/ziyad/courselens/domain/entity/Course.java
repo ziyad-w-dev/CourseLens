@@ -32,6 +32,7 @@ public class Course {
 
     private int level; // 5
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @ManyToOne

@@ -11,7 +11,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,6 +19,7 @@ import java.util.stream.Collectors;
 public class CourseService {
 
     private final TopicFocusRepository topicFocusRepository;
+    private final CourseFocusRepository courseFocusRepository;
     private final CourseRepository courseRepository;
     private final CourselensMapper mapper;
     private final AiService aiService;
@@ -39,7 +39,8 @@ public class CourseService {
 
         User doctor = getCurrentUser();
 
-        CourseAiResponse aiData = aiService.courseAiAnalyze(file);
+        // The program tells Gemini who the students are ("why this matters for a SWE student")
+        CourseAiResponse aiData = aiService.courseAiAnalyze(file, doctor.getProgram());
 
         Course savedCourse = coursePersistenceService.saveCourse(aiData, doctor);
 
@@ -49,7 +50,7 @@ public class CourseService {
     public CourseResponse getCourseById(Long id) {
         User user = getCurrentUser();
 
-        Course course = courseRepository.findByIdAndInstitution(id,user.getInstitution())
+        Course course = courseRepository.findByIdAndInstitution(id, user.getInstitution())
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found with id: " + id));
 
         List<TopicResponse> topicResponses = course.getTopics().stream()
@@ -62,18 +63,39 @@ public class CourseService {
                 })
                 .collect(Collectors.toList());
 
+        // description already holds "why this course matters for your program" (mapped by MapStruct)
         CourseResponse response = mapper.toCourseResponse(course);
         response.setTopics(topicResponses);
+
+        // Course-level "why it matters for your track" — optional: if it's missing,
+        // the page still works; only this section stays empty
+        courseFocusRepository.findByCourseAndTargetTrack(course, user.getTrack())
+                .ifPresent(courseFocus -> {
+                    response.setFocusReason(courseFocus.getFocusReason());
+                    response.setRealWorldExample(courseFocus.getRealWorldExample());
+                });
+
         return response;
     }
 
     public List<CourseResponse> getCoursesForStudent() {
         User student = getCurrentUser();
-        return courseRepository.findByProgramAndInstitution(student.getProgram(),student.getInstitution())
+        Track track = student.getTrack();
+
+        return courseRepository.findByProgramAndInstitution(student.getProgram(), student.getInstitution())
                 .stream()
                 .map(course -> {
                     CourseResponse response = mapper.toCourseResponse(course);
                     response.setTopics(null);
+
+                    // Card counts for the student's track
+                    response.setMasterCount((int) topicFocusRepository
+                            .countByTopicCourseAndTargetTrackAndFocusLevel(course, track, FocusLevel.MASTER_IT));
+                    response.setApplyCount((int) topicFocusRepository
+                            .countByTopicCourseAndTargetTrackAndFocusLevel(course, track, FocusLevel.APPLY_IT));
+                    response.setKnowCount((int) topicFocusRepository
+                            .countByTopicCourseAndTargetTrackAndFocusLevel(course, track, FocusLevel.KNOW_IT));
+
                     return response;
                 })
                 .collect(Collectors.toList());
@@ -81,7 +103,7 @@ public class CourseService {
 
     public List<CourseResponse> getMyCoursesAsDoctor() {
         User doctor = getCurrentUser();
-        return courseRepository.findByDoctorAndInstitution(doctor,doctor.getInstitution())
+        return courseRepository.findByDoctorAndInstitution(doctor, doctor.getInstitution())
                 .stream()
                 .map(course -> {
                     CourseResponse response = mapper.toCourseResponse(course);

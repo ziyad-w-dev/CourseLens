@@ -26,7 +26,9 @@ public class CoursePersistenceService {
         Course course = new Course();
         course.setDoctor(doctor);
         course.setTitle(aiData.getCourseTitle()); // we will take it from Ai response
-        course.setCode(aiData.getCourseCode()); // we will take it from Ai response
+        course.setCode(aiData.getCourseCode());// we will take it from Ai response
+        course.setLevel(aiData.getCourseLevel() != null ? aiData.getCourseLevel() : 0);
+        course.setDescription(aiData.getProgramRelevance());
         course.setProgram(doctor.getProgram());
         course.setInstitution(doctor.getInstitution());
 

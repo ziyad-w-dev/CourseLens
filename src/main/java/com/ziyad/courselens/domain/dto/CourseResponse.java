@@ -18,6 +18,10 @@ public class CourseResponse {
     private String description;
     private String focusReason;
     private String realWorldExample;
+    // Student list only: how many topics fall in each focus level for the student's track
+    private Integer masterCount;
+    private Integer applyCount;
+    private Integer knowCount;
     private List<TopicResponse> topics;
     private LocalDateTime createdAt;
 
