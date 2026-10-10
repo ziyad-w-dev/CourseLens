@@ -26,7 +26,7 @@ public class JwtUtil { // this will be a helper class Utility class we will call
         return Keys.hmacShaKeyFor(secret.getBytes()); //hmacShaKeyFor will create a key object so we use it in other methods
     }
 
-    // to create a token given the email and role
+    // to create a token given the id and role
     public String generateToken(Long userId, String role,Long institutionId) {
         return Jwts.builder()  // JWTs util class
                 .setSubject(String.valueOf(userId)) // we set the sub to the email

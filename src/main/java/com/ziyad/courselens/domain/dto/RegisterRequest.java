@@ -22,9 +22,8 @@ public class RegisterRequest {
     private String password;
 
     @NotNull
-    private Role role;
-
     private Track track;
+
     @NotNull
     private Program program;
 

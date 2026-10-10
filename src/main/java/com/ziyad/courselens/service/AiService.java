@@ -91,7 +91,7 @@ public class AiService {
         ═══════════════════════════════════════════
         TRACKS (use these EXACT values):
         ═══════════════════════════════════════════
-{TRACKS}
+        {TRACKS}
         
         ═══════════════════════════════════════════
         TOPIC-LEVEL FOCUS LEVELS (use these EXACT values):

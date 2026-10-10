@@ -2,10 +2,7 @@ package com.ziyad.courselens.domain.entity;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -17,8 +14,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "users")
-@Data
-@AllArgsConstructor
+@Getter
+@Setter
 @NoArgsConstructor
 public class User implements UserDetails {
 
@@ -40,7 +37,8 @@ public class User implements UserDetails {
     private Program program;
 
     @Enumerated(EnumType.STRING)
-    private Role role; // STUDENT or DOCTOR
+    @Column(nullable = false)
+    private Role role = Role.STUDENT; // STUDENT or DOCTOR
 
     @Enumerated(EnumType.STRING)
     private Track track;// NULL for Doctors

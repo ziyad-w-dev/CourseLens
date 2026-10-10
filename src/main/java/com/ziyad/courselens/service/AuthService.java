@@ -2,11 +2,9 @@ package com.ziyad.courselens.service;
 
 import com.ziyad.courselens.domain.dto.*;
 import com.ziyad.courselens.domain.entity.Institution;
-import com.ziyad.courselens.domain.entity.Role;
 import com.ziyad.courselens.domain.entity.User;
 import com.ziyad.courselens.exception.EmailAlreadyExistsException;
 import com.ziyad.courselens.exception.InvalidCredentialsException;
-import com.ziyad.courselens.exception.InvalidTrackException;
 import com.ziyad.courselens.exception.ResourceNotFoundException;
 import com.ziyad.courselens.repository.InstitutionRepository;
 import com.ziyad.courselens.repository.UserRepository;
@@ -26,32 +24,28 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
 
+        // trim to remove any additional spaces
+        String email = request.getEmail().trim().toLowerCase();
+
         // 1 - email already taken?
-        if (userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(email)) {
             throw new EmailAlreadyExistsException("Email already in use");
         }
 
         // 2 - is the email domain a registered institution?
-        String domain = request.getEmail().substring(request.getEmail().indexOf("@") + 1);
+        String domain = email.substring(email.indexOf("@") + 1);
         Institution institution = institutionRepository.findByDomain(domain)
                 .orElseThrow(() -> new ResourceNotFoundException("No registered institution for domain: " + domain));
 
-        // 3 - students must choose a track
-        if (request.getRole() == Role.STUDENT && request.getTrack() == null) {
-            throw new InvalidTrackException("Students must choose a track");
-        }
 
         // --- Passed all checks, now build ---
 
         User user = new User();
 
-        // students keep their chosen track; doctors never have one
-        user.setTrack(request.getRole() == Role.STUDENT ? request.getTrack() : null);
-
         user.setFullName(request.getFullName());
-        user.setEmail(request.getEmail());
+        user.setEmail(email);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(request.getRole()); // TODO: SECURITY - role comes from request body, fix before production (privilege escalation)
+        user.setTrack(request.getTrack());
         user.setProgram(request.getProgram());
         user.setInstitution(institution);
 
@@ -66,8 +60,10 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request) {
 
+        String email = request.getEmail().trim().toLowerCase();
+
         // Step 1 - find user by email
-        User user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
 
         // Step 2 - check password

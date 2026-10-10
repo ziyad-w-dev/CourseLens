@@ -56,15 +56,15 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(InvalidTrackException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidTrack(InvalidTrackException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                ex.getMessage(),
-                LocalDateTime.now()
-        );
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
+//    @ExceptionHandler(InvalidTrackException.class)
+//    public ResponseEntity<ErrorResponse> handleInvalidTrack(InvalidTrackException ex) {
+//        ErrorResponse error = new ErrorResponse(
+//                HttpStatus.BAD_REQUEST.value(),
+//                ex.getMessage(),
+//                LocalDateTime.now()
+//        );
+//        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+//    }
 
     // Body can't be parsed: malformed JSON, or an unknown enum value like "FULL_STACK"
     @ExceptionHandler(HttpMessageNotReadableException.class)

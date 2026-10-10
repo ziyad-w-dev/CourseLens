@@ -1,9 +1,7 @@
 package com.ziyad.courselens.domain.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,9 +9,9 @@ import java.util.List;
 
 @Entity
 @Table(name = "courses", uniqueConstraints = @UniqueConstraint(columnNames = {"institution_id", "code"}))
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class Course {
 
     @Id
