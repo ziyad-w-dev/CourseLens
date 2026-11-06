@@ -1,10 +1,12 @@
 # CourseLens
 
+![CI](https://github.com/ziyad-w-dev/CourseLens/actions/workflows/ci.yml/badge.svg)
+
 **AI-powered personalized study guides for university students.**
 
 A doctor uploads a course specification PDF. CourseLens extracts the course and its topics with Gemini 2.5 Flash and builds a guide for every career track: how deep each topic should go for that track, why it matters, and a real-world example of it in use. A backend student and a data analyst open the same course and each get a guide written for them.
 
-> **Status:** The backend is complete and works end to end. I'm now writing unit and integration tests (`AuthService` is fully unit-tested). The frontend hasn't been built yet.
+> **Status:** The backend is complete and works end to end. It runs in Docker against a cloud MySQL database, and every push is built and tested automatically with GitHub Actions. Deployment and the frontend are next.
 
 ---
 
@@ -45,8 +47,10 @@ PDFBox extracts text ──► Gemini 2.5 Flash (structured JSON output)
 | Mapping | MapStruct |
 | AI | Gemini 2.5 Flash (REST, structured output) |
 | PDF parsing | Apache PDFBox 3 |
-| Testing | JUnit 5, Mockito |
+| Testing | JUnit 5, Mockito, H2 (in-memory, for the app-context test) |
 | Build | Maven |
+| Containers | Docker |
+| CI | GitHub Actions (build + tests on every push) |
 
 ---
 
@@ -109,6 +113,7 @@ A `@RestControllerAdvice` returns one consistent `ErrorResponse` shape for every
 - **MapStruct over ModelMapper.** Mappers are generated at compile time: type-safe, no reflection, and mistakes show up as build errors.
 - **Gemini over Groq.** Chosen for output quality on long, structured responses.
 - **Secrets only in environment variables.** The DB credentials, JWT secret, and API key are never committed.
+- **Tests never touch real infrastructure.** CI runs against an in-memory H2 database with fake secrets, so tests are fast, repeatable, and can't leak or damage real data.
 
 ---
 
@@ -140,20 +145,33 @@ A `@RestControllerAdvice` returns one consistent `ErrorResponse` shape for every
 
 The API runs on `http://localhost:8080`. CORS is open to `localhost:5173` and `localhost:3000` for frontend development.
 
+### Or run with Docker
+
+1. Create a `.env` file in the project root with the same variables as above (no quotes around values). It's already in `.gitignore`, so it's never committed.
+   > If your MySQL runs on your own machine, use `host.docker.internal` instead of `localhost` in `DB_URL`. Inside a container, `localhost` means the container itself.
+2. Build and run:
+   ```
+   ./mvnw clean package -DskipTests
+   docker build -t courselens .
+   docker run -p 8080:8080 --env-file .env courselens
+   ```
+
 ---
 
 ## Roadmap
 
-- [ ] Integration tests (in progress)
+- [x] Docker image
+- [x] CI with GitHub Actions
+- [ ] Deployment (Oracle Cloud, with CD from GitHub Actions)
+- [ ] Integration tests
 - [ ] Structured logging (replace `printStackTrace` / `System.out`)
 - [ ] Frontend (React)
 - [ ] Doctor sign-up request → admin approval flow
 - [ ] Institution onboarding
-- [ ] Deployment
 
 ---
 
 ## Author
 
 **Ziyad Al-Qasim**, Software Engineering student at the University of Hail
-<!-- TODO: add LinkedIn / GitHub links -->
+- LinkedIn: www.linkedin.com/in/ziyad-alqassim-4956b1395
