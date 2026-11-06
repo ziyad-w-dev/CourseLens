@@ -93,6 +93,8 @@ A `@RestControllerAdvice` returns one consistent `ErrorResponse` shape for every
 
 ## API
 
+Interactive docs: run the app and open `/swagger-ui.html`. Use **Authorize** with a token from `/api/auth/login` to call protected endpoints.
+
 | Method | Endpoint | Role | Description |
 |---|---|---|---|
 | POST | `/api/auth/register` | Public | Create a student account |
@@ -162,7 +164,9 @@ The API runs on `http://localhost:8080`. CORS is open to `localhost:5173` and `l
 
 - [x] Docker image
 - [x] CI with GitHub Actions
+- [x] Swagger UI (interactive API docs at `/swagger-ui.html`)
 - [ ] Deployment (Oracle Cloud, with CD from GitHub Actions)
+- [ ] Return 401 (not 403) with the standard `ErrorResponse` shape for missing or invalid tokens
 - [ ] Integration tests
 - [ ] Structured logging (replace `printStackTrace` / `System.out`)
 - [ ] Frontend (React)
