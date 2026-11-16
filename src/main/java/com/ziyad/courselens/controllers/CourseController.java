@@ -3,6 +3,7 @@ package com.ziyad.courselens.controllers;
 import com.ziyad.courselens.domain.dto.CourseResponse;
 import com.ziyad.courselens.service.CourseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,7 +18,7 @@ public class CourseController {
 
     private final CourseService courseService;
 
-    @PostMapping("/upload")
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('DOCTOR')")
     public CourseResponse uploadCourse(@RequestParam("file") MultipartFile file) {
         return courseService.uploadCourse(file);

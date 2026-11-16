@@ -14,7 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TestController {
 
-    private final AiService aiService;
+    //private final AiService aiService;
 
 //    @GetMapping("/ai")
 //    public List<TopicAiResponse> testAi() {
