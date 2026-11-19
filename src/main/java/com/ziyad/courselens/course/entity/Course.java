@@ -1,0 +1,56 @@
+package com.ziyad.courselens.course.entity;
+
+import com.ziyad.courselens.common.domain.Program;
+import com.ziyad.courselens.institution.entity.Institution;
+import com.ziyad.courselens.user.entity.User;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "courses", uniqueConstraints = @UniqueConstraint(columnNames = {"institution_id", "code"}))
+@Getter
+@Setter
+@NoArgsConstructor
+public class Course {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String title; // Database Management Systems
+
+    @Column(nullable = false)
+    private String code; // SENG351
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Program program; // Software Engineering
+
+    private int level; // 5
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @ManyToOne
+    @JoinColumn(name = "doctor_id")
+    private User doctor; // who uploaded this course
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    private List<Topic> topics = new ArrayList<>();
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    private List<CourseFocus> courseFocuses = new ArrayList<>();
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name ="institution_id",nullable = false)
+    private Institution institution;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+}
