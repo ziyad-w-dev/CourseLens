@@ -1,11 +1,7 @@
 package com.ziyad.courselens.ai.service;
 
 import com.ziyad.courselens.ai.dto.CourseAiResponse;
-import com.ziyad.courselens.ai.gemini.Candidate;
-import com.ziyad.courselens.ai.gemini.Content;
-import com.ziyad.courselens.ai.gemini.GeminiRequest;
-import com.ziyad.courselens.ai.gemini.GeminiResponse;
-import com.ziyad.courselens.ai.gemini.Part;
+import com.ziyad.courselens.ai.gemini.*;
 import com.ziyad.courselens.common.domain.Program;
 import com.ziyad.courselens.common.exception.InvalidFileException;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +23,19 @@ import java.util.List;
 public class AiService {
 
     private final RestClient restClient;
+    private final CoursePromptBuilder promptBuilder;
+    private final CourseSchemaBuilder schemaBuilder;
 
     public CourseAiResponse courseAiAnalyze(MultipartFile file, Program program) {
-        extractCourseDetails(file);
-        Part part = new Part("Hello Gemini");
+        String pdfText = extractCourseDetails(file);
+        String promote = promptBuilder.build(pdfText, program);
+        log.debug("promote sent to Gemini\n{}",promote);
+        Part part = new Part(promote);
         Content content = new Content(List.of(part));
-        GeminiRequest geminiRequest = new GeminiRequest(List.of(content));
+        ThinkingConfig thinkingConfig = new ThinkingConfig(0);
+        GenerationConfig generationConfig = new GenerationConfig("application/json"
+                , 0.3,thinkingConfig,schemaBuilder.build());
+        GeminiRequest geminiRequest = new GeminiRequest(List.of(content),generationConfig);
 
         GeminiResponse response = restClient.post()
                 .body(geminiRequest)
