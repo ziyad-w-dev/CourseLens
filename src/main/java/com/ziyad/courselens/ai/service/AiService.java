@@ -1,8 +1,11 @@
 package com.ziyad.courselens.ai.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ziyad.courselens.ai.dto.CourseAiResponse;
 import com.ziyad.courselens.ai.gemini.*;
 import com.ziyad.courselens.common.domain.Program;
+import com.ziyad.courselens.common.exception.AiUnavailableException;
 import com.ziyad.courselens.common.exception.InvalidFileException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,23 +28,25 @@ public class AiService {
     private final RestClient restClient;
     private final CoursePromptBuilder promptBuilder;
     private final CourseSchemaBuilder schemaBuilder;
+    private final ObjectMapper objectMapper;
 
     public CourseAiResponse courseAiAnalyze(MultipartFile file, Program program) {
         String pdfText = extractCourseDetails(file);
-        String promote = promptBuilder.build(pdfText, program);
-        log.debug("promote sent to Gemini\n{}",promote);
-        Part part = new Part(promote);
+        String prompt = promptBuilder.build(pdfText, program);
+        log.debug("prompt sent to Gemini\n{}",prompt);
+        Part part = new Part(prompt);
         Content content = new Content(List.of(part));
+
         ThinkingConfig thinkingConfig = new ThinkingConfig(0);
-        GenerationConfig generationConfig = new GenerationConfig("application/json"
-                , 0.3,thinkingConfig,schemaBuilder.build());
+        GenerationConfig generationConfig = new GenerationConfig("application/json", 0.3
+                ,thinkingConfig,schemaBuilder.build());
+
         GeminiRequest geminiRequest = new GeminiRequest(List.of(content),generationConfig);
 
         GeminiResponse response = restClient.post()
                 .body(geminiRequest)
                 .retrieve()
                 .body(GeminiResponse.class);
-
         log.debug("Gemini response{}", response);
 
         List<Candidate> candidates = response.candidates();
@@ -52,8 +57,13 @@ public class AiService {
         String text = firstPart.text();
         log.info("Gemini response text: {}", text);
 
-
-        throw new UnsupportedOperationException("AiService not built yet");
+        try {
+            CourseAiResponse aiResponse = objectMapper.readValue(text, CourseAiResponse.class);
+            return aiResponse;
+        }catch (JsonProcessingException e){
+            log.warn("Failed to parse Gemini response into CourseAiResponse. Raw text: {}", text, e);
+            throw new AiUnavailableException("Gemini returned invalid course JSON", e);
+        }
     }
 
     private String extractCourseDetails(MultipartFile file) {
