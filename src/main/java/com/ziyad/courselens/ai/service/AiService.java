@@ -68,7 +68,7 @@ public class AiService {
             } catch (HttpServerErrorException | AiUnavailableException e) {
                 log.warn("Gemini attempt {}/{} failed: {}", attempt, maxAttempts, e.getMessage());
 
-                if (attempt == maxAttempts) {                          /
+                if (attempt == maxAttempts) {
                     throw new AiUnavailableException("Gemini failed after " + maxAttempts + " attempts", e);
                 }
 
