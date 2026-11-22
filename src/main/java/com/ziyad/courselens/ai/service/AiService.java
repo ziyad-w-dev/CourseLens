@@ -29,6 +29,21 @@ public class AiService {
     private final CoursePromptBuilder promptBuilder;
     private final CourseSchemaBuilder schemaBuilder;
     private final ObjectMapper objectMapper;
+    private final CourseResponseValidator courseResponseValidator;
+
+    private String extractCourseDetails(MultipartFile file) {
+        try(PDDocument document = Loader.loadPDF(file.getBytes())){
+            PDFTextStripper stripper = new PDFTextStripper();
+            stripper.setSortByPosition(true);
+            String text = stripper.getText(document);
+            log.info("Extracted {} characters from {} pages",text.length(),document.getNumberOfPages());
+            log.debug("Extracted PDF text:\n{}", text);
+            return text;
+        }catch (IOException e){
+            log.warn("Failed to read uploaded PDF {}",file.getOriginalFilename(), e);
+            throw new  InvalidFileException("File is not a valid PDF");
+        }
+    }
 
     public CourseAiResponse courseAiAnalyze(MultipartFile file, Program program) {
         String pdfText = extractCourseDetails(file);
@@ -59,24 +74,11 @@ public class AiService {
 
         try {
             CourseAiResponse aiResponse = objectMapper.readValue(text, CourseAiResponse.class);
+            courseResponseValidator.validate(aiResponse);
             return aiResponse;
         }catch (JsonProcessingException e){
             log.warn("Failed to parse Gemini response into CourseAiResponse. Raw text: {}", text, e);
             throw new AiUnavailableException("Gemini returned invalid course JSON", e);
-        }
-    }
-
-    private String extractCourseDetails(MultipartFile file) {
-        try(PDDocument document = Loader.loadPDF(file.getBytes())){
-            PDFTextStripper stripper = new PDFTextStripper();
-            stripper.setSortByPosition(true);
-            String text = stripper.getText(document);
-            log.info("Extracted {} characters from {} pages",text.length(),document.getNumberOfPages());
-            log.debug("Extracted PDF text:\n{}", text);
-            return text;
-        }catch (IOException e){
-            log.warn("Failed to read uploaded PDF {}",file.getOriginalFilename(), e);
-            throw new  InvalidFileException("File is not a valid PDF");
         }
     }
 }

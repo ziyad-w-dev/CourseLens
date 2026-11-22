@@ -38,7 +38,7 @@ public class CoursePromptBuilder {
           Always be positive. Never suggest skipping the course.
 
         topics: one entry for EACH topic in the course.
-          - title: the topic name exactly as written, max 100 characters.
+          - title: the topic name exactly as written.
           - lectureHours / labHours: from the document. If not found, use 0.
           - focuses: exactly ONE entry for EACH track listed above.
               - focusLevel:
