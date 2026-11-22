@@ -13,6 +13,7 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -58,8 +59,28 @@ public class AiService {
 
         GeminiRequest geminiRequest = new GeminiRequest(List.of(content),generationConfig);
 
+        int maxAttempts = 3;
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                return callGeminiOnce(geminiRequest);          // success → leave the method
+
+            } catch (HttpServerErrorException | AiUnavailableException e) {
+                log.warn("Gemini attempt {}/{} failed: {}", attempt, maxAttempts, e.getMessage());
+
+                if (attempt == maxAttempts) {                          /
+                    throw new AiUnavailableException("Gemini failed after " + maxAttempts + " attempts", e);
+                }
+
+                sleep(attempt * 2000L);
+            }
+        }
+        throw new AiUnavailableException("Gemini retry loop ended unexpectedly");
+    }
+
+    private CourseAiResponse callGeminiOnce(GeminiRequest request){
         GeminiResponse response = restClient.post()
-                .body(geminiRequest)
+                .body(request)
                 .retrieve()
                 .body(GeminiResponse.class);
         log.debug("Gemini response{}", response);
@@ -79,6 +100,14 @@ public class AiService {
         }catch (JsonProcessingException e){
             log.warn("Failed to parse Gemini response into CourseAiResponse. Raw text: {}", text, e);
             throw new AiUnavailableException("Gemini returned invalid course JSON", e);
+        }
+    }
+    private void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new AiUnavailableException("Interrupted while waiting to retry Gemini", e);
         }
     }
 }
