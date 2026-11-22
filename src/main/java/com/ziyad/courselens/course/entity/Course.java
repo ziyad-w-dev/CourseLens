@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "courses", uniqueConstraints = @UniqueConstraint(columnNames = {"institution_id", "code"}))
+@Table(name = "courses", uniqueConstraints = @UniqueConstraint(columnNames = {"institution_id", "code","program"}))
 @Getter
 @Setter
 @NoArgsConstructor

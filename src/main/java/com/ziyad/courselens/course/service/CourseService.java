@@ -4,6 +4,7 @@ import com.ziyad.courselens.ai.dto.CourseAiResponse;
 import com.ziyad.courselens.ai.service.AiService;
 import com.ziyad.courselens.common.domain.FocusLevel;
 import com.ziyad.courselens.common.domain.Track;
+import com.ziyad.courselens.common.exception.CourseAlreadyExistsException;
 import com.ziyad.courselens.common.exception.InvalidFileException;
 import com.ziyad.courselens.common.exception.ResourceNotFoundException;
 import com.ziyad.courselens.common.mapper.CourselensMapper;
@@ -16,6 +17,7 @@ import com.ziyad.courselens.course.repository.CourseRepository;
 import com.ziyad.courselens.course.repository.TopicFocusRepository;
 import com.ziyad.courselens.user.entity.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CourseService {
@@ -50,6 +53,13 @@ public class CourseService {
 
         // The program tells Gemini who the students are ("why this matters for a SWE student")
         CourseAiResponse aiData = aiService.courseAiAnalyze(file, doctor.getProgram());
+
+        if(courseRepository.existsCourseByCodeAndProgramAndInstitution(
+                aiData.getCourseCode(),doctor.getProgram(),doctor.getInstitution())) {
+            log.info("Duplicate upload rejected: {} for program {} by doctor {}",
+                    aiData.getCourseCode(), doctor.getProgram(), doctor.getId());
+            throw new CourseAlreadyExistsException("Course " + aiData.getCourseCode() + " already exists for this program");
+        }
 
         Course savedCourse = coursePersistenceService.saveCourse(aiData, doctor);
 
