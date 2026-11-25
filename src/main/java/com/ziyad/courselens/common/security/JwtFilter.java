@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -16,6 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor // to inject the final filed
 public class JwtFilter extends OncePerRequestFilter {
@@ -29,7 +31,8 @@ public class JwtFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) // the chain we are going to walk through to filter the req
             throws ServletException, IOException { // tell spring about this EXP for him to handle
 
-                String authHeader = request.getHeader("Authorization");// grabbing the auth from the req header and store it here
+                // grabbing the auth from the req header and store it here
+                String authHeader = request.getHeader("Authorization");
 
                 // if the header is empty then no token is there, and if the header doesn't start with bearer then there is something wrong
                 // we treat this like there is NO TOKEN
@@ -49,7 +52,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
 
                 // take the id from the token and load the user.
-                // If the user was deleted, or the token is from an old format, treat it as NO TOKEN:
+                // If the user was deleted, or the token is from an old format, treat it as NO TOKEN
                 // public endpoints (login/register) still work, protected ones get rejected by Security.
                 try {
                     Long userId = jwtUtil.extractUserId(token);
@@ -62,6 +65,10 @@ public class JwtFilter extends OncePerRequestFilter {
                     }
                 } catch (ResourceNotFoundException | NumberFormatException e) {
                     // stale or malformed token: continue unauthenticated
+                    log.warn("JWT rejected for {}: {} - {}",
+                            request.getRequestURI(),
+                            e.getClass().getSimpleName(),
+                            e.getMessage());
                 }
                 filterChain.doFilter(request, response);
             }
