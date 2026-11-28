@@ -1,0 +1,66 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--r-pill);
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.bars {
+  display: inline-flex;
+  align-items: flex-end;
+}
+
+.bars > span { border-radius: 1px; }
+
+/* ---- kinds ---- */
+.master { background: var(--master); color: #FFFFFF; }
+.master .on { background: #FFFFFF; }
+
+.apply { background: var(--apply-bg); border: 1px solid var(--apply-border); color: var(--apply-fg); }
+.apply .on { background: var(--apply-fg); }
+.apply .off { background: var(--apply-dim); }
+
+.know { background: #FFFFFF; border: 1px solid var(--know-border); color: var(--know-fg); }
+.know .on { background: var(--know-fg); }
+.know .off { background: var(--know-dim); }
+
+/* ---- sizes ---- */
+.xs { gap: 7px; height: 24px; padding: 0 10px 0 8px; font-size: 10.5px; letter-spacing: 0.08em; }
+.xs .bars { gap: 2px; height: 10px; }
+.xs .bars > span { width: 3px; }
+.xs .bars > span:nth-child(1) { height: 4px; }
+.xs .bars > span:nth-child(2) { height: 7px; }
+.xs .bars > span:nth-child(3) { height: 10px; }
+
+.sm, .md { gap: 8px; font-size: 11px; }
+.sm { height: 26px; padding: 0 11px 0 9px; }
+.md { height: 28px; padding: 0 12px 0 10px; }
+.sm .bars, .md .bars { gap: 2px; height: 11px; }
+.sm .bars > span, .md .bars > span { width: 3px; }
+.sm .bars > span:nth-child(1), .md .bars > span:nth-child(1) { height: 5px; }
+.sm .bars > span:nth-child(2), .md .bars > span:nth-child(2) { height: 8px; }
+.sm .bars > span:nth-child(3), .md .bars > span:nth-child(3) { height: 11px; }
+
+.lg { gap: 10px; height: 40px; padding: 0 18px 0 14px; font-size: 14px; }
+.lg .bars { gap: 3px; height: 15px; }
+.lg .bars > span { width: 4px; }
+.lg .bars > span:nth-child(1) { height: 7px; }
+.lg .bars > span:nth-child(2) { height: 11px; }
+.lg .bars > span:nth-child(3) { height: 15px; }
+
+.xl { gap: 12px; height: 52px; padding: 0 22px 0 18px; font-size: 17px; }
+.xl .bars { gap: 3px; height: 18px; }
+.xl .bars > span { width: 5px; }
+.xl .bars > span:nth-child(1) { height: 8px; }
+.xl .bars > span:nth-child(2) { height: 13px; }
+.xl .bars > span:nth-child(3) { height: 18px; }
+
+.xlm { gap: 10px; height: 46px; padding: 0 18px 0 15px; font-size: 15px; align-self: flex-start; }
+.xlm .bars { gap: 3px; height: 16px; }
+.xlm .bars > span { width: 4px; }
+.xlm .bars > span:nth-child(1) { height: 7px; }
+.xlm .bars > span:nth-child(2) { height: 11px; }
+.xlm .bars > span:nth-child(3) { height: 16px; }

@@ -1,0 +1,191 @@
+.header {
+  height: 72px;
+  flex-shrink: 0;
+  padding: 0 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.left { display: flex; align-items: center; gap: 40px; }
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--ink);
+}
+.brand:hover { color: var(--ink); }
+
+.brandName {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.nav { display: flex; gap: 4px; }
+
+.navLink {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--chip);
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.right { display: flex; align-items: center; gap: 16px; }
+
+.trackPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 14px 0 6px;
+  border-radius: var(--r-pill);
+  font-size: 13px;
+  font-weight: 800;
+}
+.trackPill .trackDot { width: 24px; height: 24px; }
+
+.trackPillSm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px 0 5px;
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: 800;
+}
+.trackPillSm .trackDot { width: 22px; height: 22px; }
+
+.trackDot {
+  border-radius: var(--r-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user { display: flex; align-items: center; gap: 12px; }
+.userText { display: flex; flex-direction: column; align-items: flex-end; }
+.userName { font-size: 14px; font-weight: 800; }
+.userSub { font-size: 12px; color: var(--muted); }
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-pill);
+  background: var(--ink);
+  color: var(--ink-on-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.divider { width: 1px; height: 28px; background: var(--line); }
+
+.logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--input-border);
+  background: var(--surface);
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+/* ---- professor header ---- */
+.profBrand { display: flex; align-items: center; gap: 14px; }
+
+.profChip {
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  background: var(--ink);
+  color: var(--ink-on-dark);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.profAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-pill);
+  background: var(--chip-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* ---- mobile (390px designs) ---- */
+.mHeader {
+  height: 60px;
+  flex-shrink: 0;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.mBrand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--ink);
+}
+.mBrand:hover { color: var(--ink); }
+.mBrandName { font-family: var(--font-serif); font-size: 20px; font-weight: 600; }
+
+.mRight { display: flex; align-items: center; gap: 6px; }
+
+.mLogout {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 4px 0 8px;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.mBack {
+  width: 44px;
+  height: 44px;
+  margin-left: -10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-sm);
+}
+
+.mCode { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--muted); }
+
+.mTrackCircle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-pill);
+}

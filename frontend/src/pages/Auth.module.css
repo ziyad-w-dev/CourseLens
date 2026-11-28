@@ -1,0 +1,246 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  background: var(--bg);
+}
+
+/* ---- navy side panel ---- */
+.aside {
+  width: 560px;
+  flex-shrink: 0;
+  padding: 56px;
+  background: var(--ink);
+  color: var(--ink-on-dark);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.asideBrand { display: flex; align-items: center; gap: 10px; }
+.asideBrandName { font-family: var(--font-serif); font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
+
+.asideBody { display: flex; flex-direction: column; gap: 28px; }
+
+.asideTitle {
+  font-family: var(--font-serif);
+  font-size: 46px;
+  line-height: 1.08;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.asideText { font-size: 16px; line-height: 1.6; color: var(--panel-text); }
+
+.asideFoot { font-size: 13px; color: var(--panel-faint); }
+
+/* sign-up example card */
+.example {
+  padding: 20px;
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.exampleHead { display: flex; align-items: center; justify-content: space-between; }
+.exampleTitle { font-size: 15px; font-weight: 800; }
+.exampleCode { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.exampleRows { display: flex; flex-direction: column; gap: 8px; }
+.exampleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: var(--bg);
+}
+.exampleTrack { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 700; }
+.exampleNote { font-size: 13px; color: var(--muted); }
+
+/* log-in legend rows */
+.legend { display: flex; flex-direction: column; gap: 10px; }
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  background: rgba(245, 244, 239, 0.07);
+  border: 1px solid rgba(245, 244, 239, 0.14);
+}
+.legendText { font-size: 14px; color: var(--panel-row-text); }
+
+/* ---- main column ---- */
+.main {
+  flex-grow: 1;
+  padding: 56px 88px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 28px;
+}
+
+.loginMain { align-items: flex-start; }
+.loginCol { width: 480px; max-width: 100%; display: flex; flex-direction: column; gap: 28px; }
+
+.tabs {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 4px;
+  border-radius: var(--r-md);
+  background: var(--chip-2);
+  gap: 4px;
+}
+.tab, .tabActive {
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 20px;
+  border-radius: 9px;
+  font-size: 14px;
+  text-decoration: none;
+}
+.tab { font-weight: 700; color: var(--text-3); }
+.tabActive { background: var(--surface); font-weight: 800; box-shadow: 0 1px 2px rgba(23, 32, 51, 0.08); }
+
+.heading { display: flex; flex-direction: column; gap: 8px; }
+.title { font-family: var(--font-serif); font-size: 36px; font-weight: 500; letter-spacing: -0.015em; }
+.subtitle { font-size: 15px; color: var(--muted); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 20px;
+}
+
+.field { display: flex; flex-direction: column; gap: 8px; }
+.label { font-size: 13px; font-weight: 700; }
+
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--input-border);
+  background: var(--surface);
+  font-size: 15px;
+  color: var(--ink);
+}
+.inputError {
+  border: 1.5px solid var(--error);
+  background: var(--error-bg);
+}
+
+.hint { font-size: 12.5px; color: var(--muted); }
+
+.errorText {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  font-weight: 700;
+  color: var(--error);
+}
+.errorText svg { flex-shrink: 0; margin-top: 1px; }
+
+.selectWrap { position: relative; }
+.select {
+  padding-right: 40px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.selectIcon { position: absolute; right: 14px; top: 15px; height: 18px; pointer-events: none; }
+
+/* ---- track picker ---- */
+.fieldset { margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.fieldsetHead { display: flex; align-items: baseline; justify-content: space-between; }
+.legendLabel { padding: 0; font-size: 13px; font-weight: 700; }
+.required { color: var(--master); }
+
+.tracks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+
+.trackCard {
+  position: relative;
+  height: 150px;
+  padding: 16px 14px;
+  border-radius: var(--r-lg);
+  border: 2px solid var(--line);
+  background: var(--surface);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: pointer;
+  color: var(--ink);
+}
+.trackIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.trackName { font-size: 14.5px; font-weight: 800; line-height: 1.25; }
+.trackDesc { font-size: 12.5px; line-height: 1.45; color: var(--muted); }
+.trackCheck {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- submit ---- */
+.actions { display: flex; flex-direction: column; gap: 14px; }
+
+.submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 54px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--ink);
+  color: #FFFFFF;
+  font-size: 15.5px;
+  font-weight: 800;
+  cursor: pointer;
+  width: 100%;
+}
+.submit:disabled { opacity: 0.7; cursor: progress; }
+
+.switch { font-size: 14px; color: var(--muted); }
+.switchCenter { text-align: center; }
+.switch a { font-weight: 800; }
+
+/* session expired banner */
+.expired {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  background: var(--warm-bg);
+  border: 1px solid var(--warm-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.expired svg { flex-shrink: 0; }
+.expiredText { font-size: 14.5px; font-weight: 700; color: var(--warm-deep); }
+
+@media (max-width: 1100px) {
+  .aside { display: none; }
+  .main { padding: 40px 24px; }
+}
+@media (max-width: 640px) {
+  .grid, .tracks { grid-template-columns: 1fr; }
+  .fieldsetHead { flex-direction: column; gap: 4px; }
+  .trackCard { height: auto; }
+}

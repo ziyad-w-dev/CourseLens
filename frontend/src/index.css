@@ -1,0 +1,117 @@
+/* Shared design tokens, taken from frontend-design/*.dc.html */
+:root {
+  /* fonts */
+  --font-serif: Fraunces, Georgia, serif;
+  --font-sans: Manrope, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  /* neutrals */
+  --bg: #F5F4EF;
+  --surface: #FFFFFF;
+  --surface-soft: #FAF9F5;
+  --ink: #172033;
+  --ink-on-dark: #F5F4EF;
+  --text-body: #2A3142;
+  --text-2: #3B4252;
+  --text-3: #4F5869;
+  --muted: #586174;
+  --faint: #8A92A2;
+  --line: #E4E2DA;
+  --line-soft: #EFEEE8;
+  --input-border: #D5D3CB;
+  --chip: #F0EFE9;
+  --chip-2: #E9E7E0;
+  --dashed: #CFCCC2;
+  --dashed-strong: #B9BDC6;
+
+  /* dark side panel */
+  --panel-text: #BAC1CF;
+  --panel-faint: #97A0B1;
+  --panel-row-text: #E3E6EC;
+
+  /* career tracks */
+  --backend: #3645A0;
+  --backend-tint: #ECEEF9;
+  --frontend: #0A6F8C;
+  --frontend-tint: #E4F2F6;
+  --data: #2B7147;
+  --data-tint: #E6F2EA;
+
+  /* focus levels */
+  --master: #B23E1C;
+  --apply-bg: #FCE7D6;
+  --apply-border: #F2C6A5;
+  --apply-fg: #8A3310;
+  --apply-dim: #EBC3A8;
+  --apply-bar: #EBA57E;
+  --know-border: #C5CAD3;
+  --know-fg: #4F5869;
+  --know-dim: #D9DCE2;
+  --know-bar: #D5D8DE;
+
+  /* warm "real-world example" surfaces */
+  --warm-bg: #FFF5E9;
+  --warm-border: #F0D8BA;
+  --warm-text: #3A2A1E;
+  --warm-deep: #6B2A0E;
+
+  /* errors */
+  --error: #A4281B;
+  --error-bg: #FDF2EF;
+  --error-border: #EDB9AF;
+  --error-title: #7A1F15;
+  --error-text: #5E3A33;
+
+  /* success */
+  --success-bg: #E6F2EA;
+  --success-border: #BFDCC9;
+  --success-title: #1E4F32;
+  --success-text: #2B5A3E;
+
+  /* logo accents */
+  --logo-accent: #E08A5E;
+  --logo-accent-dark: #C4552A;
+
+  /* radii */
+  --r-xs: 7px;
+  --r-sm: 10px;
+  --r-md: 12px;
+  --r-lg: 14px;
+  --r-xl: 16px;
+  --r-2xl: 18px;
+  --r-3xl: 20px;
+  --r-4xl: 24px;
+  --r-pill: 999px;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { min-height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--ink); }
+a:hover { color: var(--backend); }
+
+input, select, button { font-family: inherit; }
+
+h1, h2, h3, p { margin: 0; }
+
+.serif { font-family: var(--font-serif); }
+.mono { font-family: var(--font-mono); }
+
+@keyframes cl-spin { to { transform: rotate(360deg); } }
+@keyframes cl-slide { 0% { left: -35%; } 100% { left: 100%; } }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  overflow: hidden; clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
