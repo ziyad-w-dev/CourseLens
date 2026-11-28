@@ -20,4 +20,14 @@ class GlobalExceptionHandlerTest {
         assertEquals(400, response.getBody().getStatus());
         assertEquals("File is larger than 20 MB", response.getBody().getMessage());
     }
+
+    @Test
+    void duplicateCourse_isConflictWithTheMessage() {
+        ResponseEntity<ErrorResponse> response = handler.handleCourseExists(
+                new CourseAlreadyExistsException("Course SENG 351 already exists for this program"));
+
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertEquals(409, response.getBody().getStatus());
+        assertEquals("Course SENG 351 already exists for this program", response.getBody().getMessage());
+    }
 }

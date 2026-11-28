@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getMyCoursesAsDoctor, uploadCourse } from '../api/endpoints';
 import { getSession } from '../auth/session';
-import { CheckIcon, FileIcon, FileUpIcon, FileXIcon, LogoutIcon, RefreshIcon, TimerIcon, UploadIcon } from '../components/Icons';
+import { AlertIcon, CheckIcon, FileIcon, FileUpIcon, FileXIcon, LogoutIcon, RefreshIcon, TimerIcon, UploadIcon } from '../components/Icons';
 import { LogoMark } from '../components/Logo';
 import { useLogout } from '../components/StudentHeader';
 import headerStyles from '../components/Header.module.css';
@@ -47,8 +47,9 @@ function ProfHeader() {
 const isPdf = (file) => file && (file.type === 'application/pdf' || /\.pdf$/i.test(file.name));
 
 export default function ProfDashboard() {
-  // phase: idle | processing | done | busy | pdf
+  // phase: idle | processing | done | busy | pdf | duplicate
   const [phase, setPhase] = useState('idle');
+  const [duplicateMessage, setDuplicateMessage] = useState('');
   const [file, setFile] = useState(null);
   const [step, setStep] = useState(0);
   const [result, setResult] = useState(null);
@@ -90,7 +91,13 @@ export default function ProfDashboard() {
       loadCourses();
     } catch (err) {
       if (err.status === 401) return; // redirected to login
-      // 400 = the file itself is bad (not a PDF, no text, empty, too big); anything else = AI busy/failed
+      // 400 = the file itself is bad (not a PDF, no text, empty, too big);
+      // 409 = this course code is already uploaded for the program; anything else = AI busy/failed
+      if (err.status === 409) {
+        setDuplicateMessage(err.message);
+        setPhase('duplicate');
+        return;
+      }
       setPhase(err.status === 400 ? 'pdf' : 'busy');
     }
   }
@@ -190,6 +197,23 @@ export default function ProfDashboard() {
             <div className={styles.errorText}>
               <h2 className={styles.errorTitle}>This file isn't a readable PDF</h2>
               <p className={styles.errorBody}>Upload the course specification as a PDF.</p>
+            </div>
+            <button type="button" className={styles.errorBtn} onClick={pickFile}>
+              <UploadIcon size={18} color="#FFFFFF" />
+              Choose another PDF
+            </button>
+          </section>
+        )}
+
+        {phase === 'duplicate' && (
+          <section role="alert" className={styles.error}>
+            <span className={styles.errorIcon}><AlertIcon size={34} color="#A4281B" sw={1.9} /></span>
+            <div className={styles.errorText}>
+              <h2 className={styles.errorTitle}>This course is already uploaded</h2>
+              <p className={styles.errorBody}>
+                {duplicateMessage || 'This course already exists for your program.'} Nothing was saved — students
+                still see the existing version.
+              </p>
             </div>
             <button type="button" className={styles.errorBtn} onClick={pickFile}>
               <UploadIcon size={18} color="#FFFFFF" />

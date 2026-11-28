@@ -1,5 +1,6 @@
 package com.ziyad.courselens.common.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -13,11 +14,22 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleEmailExists(EmailAlreadyExistsException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(CourseAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleCourseExists(CourseAlreadyExistsException ex) {
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.CONFLICT.value(),
                 ex.getMessage(),
@@ -67,16 +79,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-//    @ExceptionHandler(InvalidTrackException.class)
-//    public ResponseEntity<ErrorResponse> handleInvalidTrack(InvalidTrackException ex) {
-//        ErrorResponse error = new ErrorResponse(
-//                HttpStatus.BAD_REQUEST.value(),
-//                ex.getMessage(),
-//                LocalDateTime.now()
-//        );
-//        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-//    }
-
     // Body can't be parsed: malformed JSON, or an unknown enum value like "FULL_STACK"
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleUnreadableBody(HttpMessageNotReadableException ex) {
@@ -116,9 +118,10 @@ public class GlobalExceptionHandler {
     }
 
     // Gemini unreachable: timeout, network error, 429 quota
+    // Expected → message only, no stack trace
     @ExceptionHandler(RestClientException.class)
     public ResponseEntity<ErrorResponse> handleAiUnavailable(RestClientException ex) {
-        ex.printStackTrace();
+        log.warn("Gemini unreachable: {} - {}", ex.getClass().getSimpleName(), ex.getMessage());
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.SERVICE_UNAVAILABLE.value(),
                 "AI service is busy, please try again",
@@ -127,10 +130,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
-    // Anything else: clean body for the client, full stack trace in the console for you
+    // Anything else: clean body for the client, full stack trace in the log for you
+    // Unexpected → log.error WITH ex (stack trace)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex) {
-        ex.printStackTrace();
+        log.error("Unexpected error", ex);
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Something went wrong, please try again",
@@ -140,9 +144,10 @@ public class GlobalExceptionHandler {
     }
 
     // Gemini failed on every retry (503 overloaded, broken JSON, incomplete tracks)
+    // Expected → message only (each attempt is already logged in AiService)
     @ExceptionHandler(AiUnavailableException.class)
     public ResponseEntity<ErrorResponse> handleAiFailed(AiUnavailableException ex) {
-        ex.printStackTrace();
+        log.warn("AI request failed: {}", ex.getMessage());
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.SERVICE_UNAVAILABLE.value(),
                 "AI service is busy, please try again",

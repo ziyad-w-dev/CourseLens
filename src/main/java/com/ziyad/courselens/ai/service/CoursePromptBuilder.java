@@ -39,9 +39,10 @@ public class CoursePromptBuilder {
 
         topics: one entry for EACH topic in the course.
           - title: ONLY the topic heading exactly as written, max 100 characters.
-            Do NOT include its sub-points, bullets, or anything after a colon.
-            Example: "Introduction to Databases", not
-            "Introduction to Databases: Types of Databases, Basic Definitions".
+            Do NOT include the sub-points or bullets listed after the heading,
+            and do NOT include the trailing colon.
+            Example: "Introduction to Databases: • Types of Databases • Basic Definitions"
+            → title: "Introduction to Databases"
           - lectureHours / labHours: from the document. If not found, use 0.
           - focuses: exactly ONE entry for EACH track listed above.
               - focusLevel:

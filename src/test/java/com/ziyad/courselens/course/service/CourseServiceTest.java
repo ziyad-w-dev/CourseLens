@@ -1,6 +1,8 @@
 package com.ziyad.courselens.course.service;
 
+import com.ziyad.courselens.ai.dto.CourseAiResponse;
 import com.ziyad.courselens.ai.service.AiService;
+import com.ziyad.courselens.common.exception.CourseAlreadyExistsException;
 import com.ziyad.courselens.common.domain.FocusLevel;
 import com.ziyad.courselens.common.domain.Program;
 import com.ziyad.courselens.common.domain.Track;
@@ -22,6 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -30,8 +33,11 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -85,6 +91,20 @@ class CourseServiceTest {
         focus.setTargetTrack(Track.BACKEND_DEVELOPER);
         focus.setFocusLevel(level);
         return focus;
+    }
+
+    @Test
+    void uploadCourse_duplicateCodeForProgram_throwsConflictAndSavesNothing() {
+        MockMultipartFile file = new MockMultipartFile("file", "spec.pdf", "application/pdf", new byte[]{1});
+        CourseAiResponse aiData = new CourseAiResponse();
+        aiData.setCourseCode("SENG 351");
+
+        when(aiService.courseAiAnalyze(file, Program.SOFTWARE_ENGINEERING)).thenReturn(aiData);
+        when(courseRepository.existsCourseByCodeAndProgramAndInstitution(
+                "SENG 351", Program.SOFTWARE_ENGINEERING, institution)).thenReturn(true);
+
+        assertThrows(CourseAlreadyExistsException.class, () -> courseService.uploadCourse(file));
+        verify(coursePersistenceService, never()).saveCourse(any(), any());
     }
 
     @Test

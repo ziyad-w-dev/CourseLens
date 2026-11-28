@@ -138,3 +138,55 @@ current user's institution.
   topic in syllabus order for the requested track, and empty for a track with none.
 
 `./mvnw test`: 20 tests, all passing.
+
+---
+
+# Merge of `main` into `frontend`
+
+`main` had 6 commits `frontend` was missing: SLF4J logging in `GlobalExceptionHandler`, logging of rejected
+JWTs, a Gemini retry (up to 3 attempts), 409 on a duplicate course upload, a "topic heading only" prompt
+instruction, and validation of the Gemini response. Both sides' behaviour is kept.
+
+## Conflicts and how they were resolved
+
+### `common/exception/GlobalExceptionHandler.java`
+- **Kept from main:** `@Slf4j` logging instead of `printStackTrace()` (`log.warn` for expected Gemini
+  failures, `log.error` with the stack trace for unexpected errors), the new
+  `CourseAlreadyExistsException` → **409** handler, and the removal of the commented-out
+  `InvalidTrackException` handler.
+- **Kept from frontend:** the `MaxUploadSizeExceededException` → **400** `"File is larger than 20 MB"`
+  handler.
+
+### `ai/service/CoursePromptBuilder.java`
+- Both branches had added their own "topic heading only" instruction. They are merged into **one**
+  instruction: only the heading as written (max 100 characters), no sub-points / bullets, no trailing
+  colon, with one example. `shortTitle()` in `CoursePersistenceService` still trims titles as a safety net.
+
+## Auto-merged (checked by hand)
+
+- `ai/service/AiService.java`: the scanned-PDF check (blank text → `InvalidFileException`, 400) runs
+  before the prompt is built; main's 3-attempt retry and the new `CourseResponseValidator` (every track
+  exactly once per course and per topic, titles ≤ 500 chars and unique) wrap the Gemini call. A response
+  that fails validation counts as a failed attempt and is retried; after 3 failures → 503.
+- `course/service/CourseService.java`: main's duplicate check
+  (`existsCourseByCodeAndProgramAndInstitution`) → `CourseAlreadyExistsException` (409) sits next to
+  frontend's single `startWith`, `syllabusNumber` and level counts. The check runs **after** the Gemini
+  call, because the course code comes from the AI's reading of the PDF.
+- `course/entity/Course.java`: main widened the unique constraint to `(institution_id, code, program)`;
+  frontend's `@OrderBy("id ASC")` on `topics` is kept.
+- `common/security/*`: main's JWT-rejection logging; frontend's 401 entry point in `SecurityConfig` is
+  unchanged.
+
+## Status the frontend relies on (new)
+
+| Screen | Request | Status → UI |
+|---|---|---|
+| Professor upload | `POST /api/courses/upload` | 409 → "This course is already uploaded" (backend message shown), not "AI service is busy" |
+
+## Tests added
+
+- `course/service/CourseServiceTest`: a duplicate upload throws `CourseAlreadyExistsException` and
+  nothing is saved.
+- `common/exception/GlobalExceptionHandlerTest`: `CourseAlreadyExistsException` → 409 with its message.
+
+`./mvnw test`: 22 tests, all passing.
