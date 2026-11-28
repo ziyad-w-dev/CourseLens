@@ -71,6 +71,10 @@ public class AiService {
             PDFTextStripper stripper = new PDFTextStripper();
             stripper.setSortByPosition(true);
             String text = stripper.getText(document);
+            // A scanned/image-only PDF opens fine but has no text: nothing for Gemini to read
+            if (text == null || text.isBlank()) {
+                throw new InvalidFileException("File is not a readable PDF");
+            }
             log.info("Extracted {} characters from {} pages",text.length(),document.getNumberOfPages());
             log.debug("Extracted PDF text:\n{}", text);
             return text;

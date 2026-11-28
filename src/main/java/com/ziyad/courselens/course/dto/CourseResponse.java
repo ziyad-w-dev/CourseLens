@@ -22,6 +22,8 @@ public class CourseResponse {
     private Integer masterCount;
     private Integer applyCount;
     private Integer knowCount;
+    // Student list only: titles of the first 2 MASTER_IT topics (syllabus order) for the "Start with" box
+    private List<String> startWith;
     private List<TopicResponse> topics;
     private LocalDateTime createdAt;
 

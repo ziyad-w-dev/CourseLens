@@ -41,7 +41,9 @@ public class Course {
     @JoinColumn(name = "doctor_id")
     private User doctor; // who uploaded this course
 
+    // Topics are saved in the order they appear in the spec, so id order = syllabus order
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    @OrderBy("id ASC")
     private List<Topic> topics = new ArrayList<>();
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)

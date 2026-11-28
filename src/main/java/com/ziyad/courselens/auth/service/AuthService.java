@@ -37,7 +37,7 @@ public class AuthService {
         // 2 - is the email domain a registered institution?
         String domain = email.substring(email.indexOf("@") + 1);
         Institution institution = institutionRepository.findByDomain(domain)
-                .orElseThrow(() -> new ResourceNotFoundException("No registered institution for domain: " + domain));
+                .orElseThrow(() -> new ResourceNotFoundException("This email's university isn't registered on CourseLens yet."));
 
 
         // --- Passed all checks, now build ---

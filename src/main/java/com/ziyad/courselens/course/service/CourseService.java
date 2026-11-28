@@ -10,6 +10,7 @@ import com.ziyad.courselens.common.mapper.CourselensMapper;
 import com.ziyad.courselens.course.dto.CourseResponse;
 import com.ziyad.courselens.course.dto.TopicResponse;
 import com.ziyad.courselens.course.entity.Course;
+import com.ziyad.courselens.course.entity.Topic;
 import com.ziyad.courselens.course.entity.TopicFocus;
 import com.ziyad.courselens.course.repository.CourseFocusRepository;
 import com.ziyad.courselens.course.repository.CourseRepository;
@@ -20,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,19 +64,28 @@ public class CourseService {
         Course course = courseRepository.findByIdAndInstitution(id, user.getInstitution())
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found with id: " + id));
 
-        List<TopicResponse> topicResponses = course.getTopics().stream()
-                .map(topic -> {
-                    TopicFocus focus = topicFocusRepository
-                            .findByTopicAndTargetTrack(topic, user.getTrack())
-                            .orElseThrow(() -> new ResourceNotFoundException(
-                                    "No focus found for topic " + topic.getId() + " and track " + user.getTrack()));
-                    return mapper.toTopicResponse(topic, focus);
-                })
-                .collect(Collectors.toList());
+        // course.getTopics() is ordered by id, which is the order of the course specification
+        List<Topic> topics = course.getTopics();
+        List<TopicResponse> topicResponses = new ArrayList<>();
+        for (int i = 0; i < topics.size(); i++) {
+            Topic topic = topics.get(i);
+            TopicFocus focus = topicFocusRepository
+                    .findByTopicAndTargetTrack(topic, user.getTrack())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "No focus found for topic " + topic.getId() + " and track " + user.getTrack()));
+            TopicResponse topicResponse = mapper.toTopicResponse(topic, focus);
+            topicResponse.setSyllabusNumber(i + 1);
+            topicResponses.add(topicResponse);
+        }
 
         // description already holds "why this course matters for your program" (mapped by MapStruct)
         CourseResponse response = mapper.toCourseResponse(course);
         response.setTopics(topicResponses);
+
+        // Summary counts for the student's track (same numbers as the course card)
+        response.setMasterCount(countLevel(topicResponses, FocusLevel.MASTER_IT));
+        response.setApplyCount(countLevel(topicResponses, FocusLevel.APPLY_IT));
+        response.setKnowCount(countLevel(topicResponses, FocusLevel.KNOW_IT));
 
         // Course-level "why it matters for your track" — optional: if it's missing,
         // the page still works; only this section stays empty
@@ -105,9 +116,21 @@ public class CourseService {
                     response.setKnowCount((int) topicFocusRepository
                             .countByTopicCourseAndTargetTrackAndFocusLevel(course, track, FocusLevel.KNOW_IT));
 
+                    // "Start with" box: the first two MASTER_IT topics in syllabus order
+                    response.setStartWith(topicFocusRepository
+                            .findTop2ByTopicCourseAndTargetTrackAndFocusLevelOrderByTopicIdAsc(
+                                    course, track, FocusLevel.MASTER_IT)
+                            .stream()
+                            .map(focus -> focus.getTopic().getTitle())
+                            .toList());
+
                     return response;
                 })
                 .collect(Collectors.toList());
+    }
+
+    private int countLevel(List<TopicResponse> topics, FocusLevel level) {
+        return (int) topics.stream().filter(t -> t.getFocusLevel() == level).count();
     }
 
     public List<CourseResponse> getMyCoursesAsDoctor() {

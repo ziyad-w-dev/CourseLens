@@ -1,0 +1,90 @@
+# Backend changes for the frontend
+
+Everything the React frontend (`frontend/`) needed from the backend that it didn't already provide.
+No endpoints were added or removed, no fields were renamed, and every query is still scoped to the
+current user's institution.
+
+## Changed files
+
+### `course/dto/CourseResponse.java`
+- **Added** `List<String> startWith`.
+- **Why:** the course card (screen 2a) has a **START WITH** box showing the first two MASTER IT topics.
+  Only filled by `GET /api/courses` (student list); `null` elsewhere.
+
+### `course/repository/TopicFocusRepository.java`
+- **Added** `findTop2ByTopicCourseAndTargetTrackAndFocusLevelOrderByTopicIdAsc(course, track, level)`.
+- **Why:** returns the data for `startWith`: the first two MASTER_IT topics for the student's track, in
+  syllabus order (topic id order). One query per course, the same as the existing count queries.
+
+### `course/service/CourseService.java`
+- `getCoursesForStudent()`: fills `startWith` from the new repository method, mapped to topic titles.
+- `getCourseById()`:
+  - sets `syllabusNumber` (1-based) on every topic, in the order of the course specification;
+  - sets `masterCount` / `applyCount` / `knowCount` (counted from the topics already loaded, so no
+    extra queries).
+- **Why:** the course page (screen 3) shows `#05` next to each topic, plus the **4 MASTER IT · 3 APPLY IT ·
+  2 KNOW IT** summary tiles. Before this change the counts were only sent on the course list.
+
+### `course/dto/TopicResponse.java`
+- **Added** `int syllabusNumber`.
+- **Why:** the `#05` / `#09` numbers on the course page are the topic's position in the specification.
+  The page lists topics grouped by focus level, so that position can't be read from the list order.
+
+### `course/entity/Course.java`
+- **Added** `@OrderBy("id ASC")` to `topics`.
+- **Why:** topics are saved in the order Gemini reads them from the spec, so id order is syllabus order.
+  Without `@OrderBy`, JPA doesn't promise any order, so `syllabusNumber` (and the "Next in MASTER IT"
+  link and "1 of 9" study priority on the topic page, which use it) could come out wrong. No schema change.
+
+### `auth/service/AuthService.java`
+- **Changed** the message of the "unregistered domain" error from
+  `"No registered institution for domain: <domain>"` to
+  `"This email's university isn't registered on CourseLens yet."` Same exception and status (404).
+- **Why:** screen 1c shows the backend's error message under the email field, and the design's copy is
+  that sentence. The frontend tells this error apart by its status (404 = university not registered,
+  409 = email already in use) and shows `message` as-is.
+
+### `ai/service/AiService.java`
+- **Added:** if the PDF opens but has no extractable text (a scanned / image-only spec), throw
+  `InvalidFileException("File is not a readable PDF")` before calling Gemini.
+- **Why:** screen 5d ("This file isn't a readable PDF"). Before this change a scanned PDF was sent to Gemini as an
+  empty prompt and either failed as "AI busy" (wrong screen, 5c) or saved an empty course.
+
+### `common/exception/GlobalExceptionHandler.java`
+- **Added** a handler for `MaxUploadSizeExceededException` → **400** `"File is larger than 20 MB"`.
+- **Why:** before this change an upload over 20 MB fell through to the catch-all → 500, which the professor screen
+  shows as "The AI service is busy". It's a bad file, so it now returns 400 like the other file errors
+  and gets screen 5d. The frontend also checks the size before uploading, so normally this never runs.
+
+### `common/security/SecurityConfig.java`
+- **Added** `exceptionHandling().authenticationEntryPoint(new HttpStatusEntryPoint(UNAUTHORIZED))`.
+- **Why:** with no auth entry point configured, Spring Security answers a missing / expired / invalid
+  token with **403**, the same status as "logged in but not allowed". The frontend has to send the user
+  to the "session expired" login screen (1d) on a **401**, so unauthenticated requests now return 401.
+  Wrong-role requests (a student calling a DOCTOR endpoint) still return 403. Nothing is opened up: the
+  same requests are rejected, only the status code changes.
+
+## Error statuses the frontend relies on
+
+| Screen | Request | Status → UI |
+|---|---|---|
+| 1c Sign up | `POST /api/auth/register` | 404 → university not registered (message under email), 409 → email in use (message under email), 400 → validation |
+| 1b Log in | `POST /api/auth/login` | 401 → "Invalid email or password" (not treated as session expiry) |
+| 1d Session expired | any authenticated request | 401 → clear session, go to `/login?expired=1` |
+| 5c AI busy | `POST /api/courses/upload` | 503 (and any non-400 failure) → "The AI service is busy" |
+| 5d Unreadable PDF | `POST /api/courses/upload` | 400 → "This file isn't a readable PDF" |
+
+## Tests added / updated
+
+- `course/service/CourseServiceTest` (new): `startWith` + counts on the student list, empty `startWith`
+  when there are no MASTER topics, `syllabusNumber` + counts on the course page.
+- `course/repository/TopicFocusRepositoryTest` (new, H2): the derived `findTop2…` query returns the first
+  two MASTER_IT topics in id order, for the requested track only.
+- `ai/service/AiServiceTest` (new): non-PDF bytes and a text-less PDF both throw `InvalidFileException`
+  without calling Gemini.
+- `common/security/SecurityConfigTest` (new, MockMvc): no token → 401, bad token → 401, student token on a
+  DOCTOR endpoint → still 403.
+- `common/exception/GlobalExceptionHandlerTest` (new): oversized upload → 400.
+- `auth/service/AuthServiceTest` (updated): asserts the new unregistered-domain message.
+
+`./mvnw test`: 19 tests, all passing.

@@ -72,7 +72,9 @@ class AuthServiceTest {
         when(institutionRepository.findByDomain("ksu.edu.sa")).thenReturn(Optional.empty());
 
         //Act & assert
-        assertThrows(ResourceNotFoundException.class, () -> authService.register(request));
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () -> authService.register(request));
+        // the sign-up screen shows this message under the email field
+        assertEquals("This email's university isn't registered on CourseLens yet.", ex.getMessage());
         verify(userRepository, never()).save(any());
     }
 

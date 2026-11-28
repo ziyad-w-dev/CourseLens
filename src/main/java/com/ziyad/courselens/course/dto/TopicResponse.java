@@ -9,6 +9,8 @@ import lombok.Data;
 public class TopicResponse {
 
     private Long id;
+    // 1-based position of the topic in the course specification ("#05" in the UI)
+    private int syllabusNumber;
     private String title;
     private int lectureHours;
     private int labHours;
