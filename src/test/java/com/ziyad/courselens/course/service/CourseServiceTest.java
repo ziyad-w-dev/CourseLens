@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -88,11 +88,10 @@ class CourseServiceTest {
     }
 
     @Test
-    void getCoursesForStudent_fillsStartWithWithFirstTwoMasterTopicTitles() {
+    void getCoursesForStudent_fillsStartWithWithFirstMasterTopicTitle() {
         Course course = new Course();
         course.setId(5L);
         Topic sql = topic(1L, "SQL");
-        Topic transactions = topic(2L, "Transactions");
 
         when(courseRepository.findByProgramAndInstitution(Program.SOFTWARE_ENGINEERING, institution))
                 .thenReturn(List.of(course));
@@ -100,32 +99,32 @@ class CourseServiceTest {
         when(topicFocusRepository.countByTopicCourseAndTargetTrackAndFocusLevel(course, Track.BACKEND_DEVELOPER, FocusLevel.MASTER_IT)).thenReturn(4L);
         when(topicFocusRepository.countByTopicCourseAndTargetTrackAndFocusLevel(course, Track.BACKEND_DEVELOPER, FocusLevel.APPLY_IT)).thenReturn(3L);
         when(topicFocusRepository.countByTopicCourseAndTargetTrackAndFocusLevel(course, Track.BACKEND_DEVELOPER, FocusLevel.KNOW_IT)).thenReturn(2L);
-        when(topicFocusRepository.findTop2ByTopicCourseAndTargetTrackAndFocusLevelOrderByTopicIdAsc(
+        when(topicFocusRepository.findFirstByTopicCourseAndTargetTrackAndFocusLevelOrderByTopicIdAsc(
                 course, Track.BACKEND_DEVELOPER, FocusLevel.MASTER_IT))
-                .thenReturn(List.of(focus(sql, FocusLevel.MASTER_IT), focus(transactions, FocusLevel.MASTER_IT)));
+                .thenReturn(Optional.of(focus(sql, FocusLevel.MASTER_IT)));
 
         List<CourseResponse> result = courseService.getCoursesForStudent();
 
         assertEquals(1, result.size());
         CourseResponse card = result.get(0);
-        assertEquals(List.of("SQL", "Transactions"), card.getStartWith());
+        assertEquals("SQL", card.getStartWith());
         assertEquals(4, card.getMasterCount());
         assertEquals(3, card.getApplyCount());
         assertEquals(2, card.getKnowCount());
     }
 
     @Test
-    void getCoursesForStudent_noMasterTopics_startWithIsEmpty() {
+    void getCoursesForStudent_noMasterTopics_startWithIsNull() {
         Course course = new Course();
         when(courseRepository.findByProgramAndInstitution(Program.SOFTWARE_ENGINEERING, institution))
                 .thenReturn(List.of(course));
         when(mapper.toCourseResponse(course)).thenReturn(new CourseResponse());
-        when(topicFocusRepository.findTop2ByTopicCourseAndTargetTrackAndFocusLevelOrderByTopicIdAsc(
-                course, Track.BACKEND_DEVELOPER, FocusLevel.MASTER_IT)).thenReturn(List.of());
+        when(topicFocusRepository.findFirstByTopicCourseAndTargetTrackAndFocusLevelOrderByTopicIdAsc(
+                course, Track.BACKEND_DEVELOPER, FocusLevel.MASTER_IT)).thenReturn(Optional.empty());
 
         CourseResponse card = courseService.getCoursesForStudent().get(0);
 
-        assertTrue(card.getStartWith().isEmpty());
+        assertNull(card.getStartWith());
         assertEquals(0, card.getMasterCount());
     }
 

@@ -116,13 +116,12 @@ public class CourseService {
                     response.setKnowCount((int) topicFocusRepository
                             .countByTopicCourseAndTargetTrackAndFocusLevel(course, track, FocusLevel.KNOW_IT));
 
-                    // "Start with" box: the first two MASTER_IT topics in syllabus order
+                    // "Start with" box: the first MASTER_IT topic in syllabus order (null if there is none)
                     response.setStartWith(topicFocusRepository
-                            .findTop2ByTopicCourseAndTargetTrackAndFocusLevelOrderByTopicIdAsc(
+                            .findFirstByTopicCourseAndTargetTrackAndFocusLevelOrderByTopicIdAsc(
                                     course, track, FocusLevel.MASTER_IT)
-                            .stream()
                             .map(focus -> focus.getTopic().getTitle())
-                            .toList());
+                            .orElse(null));
 
                     return response;
                 })

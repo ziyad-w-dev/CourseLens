@@ -88,3 +88,53 @@ current user's institution.
 - `auth/service/AuthServiceTest` (updated): asserts the new unregistered-domain message.
 
 `./mvnw test`: 19 tests, all passing.
+
+---
+
+# Follow-up: short topic titles and a single START WITH topic
+
+## Changed files
+
+### `course/service/CoursePersistenceService.java`
+- **Added** a private `shortTitle(title)` helper, used when each `Topic` is built from the Gemini response.
+  It cuts the title at the first `:`, `•` or `` (U+F0B7, the bullet some PDFs use), then trims.
+  A title with none of those characters is kept as-is.
+- **Why:** Gemini often returned the topic heading together with all its sub-points, e.g.
+  `"Introduction to Databases: • Types of Databases • Basic Definitions ..."`, which made the topic
+  lists and the START WITH box unreadable. Only the heading is stored now.
+- Existing rows are **not** migrated; courses uploaded before this change keep their long titles until
+  they are re-uploaded.
+
+### `ai/service/CoursePromptBuilder.java`
+- **Changed** the `title` instruction: the title must be only the topic heading, without its
+  sub-points, bullets or anything after a colon (with an example).
+- **Why:** fixes the long titles at the source. `shortTitle` stays as a safety net for when Gemini
+  ignores the instruction.
+
+### `course/dto/CourseResponse.java`
+- **Changed** `startWith` from `List<String>` to `String`: the title of the **first** MASTER_IT topic
+  for the student's track, in syllabus order. `null` when the course has no MASTER_IT topic
+  (and, as before, `null` on every endpoint except `GET /api/courses`).
+- **Why:** the START WITH box now shows a single topic. **Breaking for API clients:** the field is a
+  string or `null` instead of an array; the frontend was updated in the same change.
+
+### `course/repository/TopicFocusRepository.java`
+- **Replaced** `findTop2ByTopicCourseAndTargetTrackAndFocusLevelOrderByTopicIdAsc` (returning a list)
+  with `findFirstByTopicCourseAndTargetTrackAndFocusLevelOrderByTopicIdAsc` returning
+  `Optional<TopicFocus>`.
+- **Why:** only one topic is needed. It is ordered by topic id, which is the syllabus order (topics are
+  saved in the order of the specification; it's the same order `syllabusNumber` is computed from).
+
+### `course/service/CourseService.java`
+- `getCoursesForStudent()`: sets `startWith` to the title from the new repository method, or `null`.
+
+## Tests added / updated
+
+- `course/service/CoursePersistenceServiceTest` (new): titles with `:`, `•` and U+F0B7 are cut to the
+  heading; a title without any of them stays unchanged.
+- `course/service/CourseServiceTest` (updated): `startWith` is the first MASTER_IT title; `null` when
+  there are no MASTER_IT topics.
+- `course/repository/TopicFocusRepositoryTest` (updated, H2): `findFirst…` returns the first MASTER_IT
+  topic in syllabus order for the requested track, and empty for a track with none.
+
+`./mvnw test`: 20 tests, all passing.

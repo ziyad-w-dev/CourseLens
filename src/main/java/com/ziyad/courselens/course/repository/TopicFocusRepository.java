@@ -23,8 +23,9 @@ public interface TopicFocusRepository extends JpaRepository<TopicFocus, Long> {
 
     long countByTopicCourseAndTargetTrackAndFocusLevel(Course course, Track targetTrack, FocusLevel focusLevel);
 
-    // First two topics of a focus level in syllabus order ("Start with" box on the course card)
-    List<TopicFocus> findTop2ByTopicCourseAndTargetTrackAndFocusLevelOrderByTopicIdAsc(
+    // First topic of a focus level in syllabus order ("Start with" box on the course card).
+    // Topic id order is syllabus order: topics are saved in the order of the specification.
+    Optional<TopicFocus> findFirstByTopicCourseAndTargetTrackAndFocusLevelOrderByTopicIdAsc(
             Course course, Track targetTrack, FocusLevel focusLevel);
 
 

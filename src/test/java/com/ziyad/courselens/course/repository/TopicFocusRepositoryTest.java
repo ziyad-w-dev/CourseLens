@@ -12,9 +12,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
-import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 class TopicFocusRepositoryTest {
@@ -44,7 +45,7 @@ class TopicFocusRepositoryTest {
     }
 
     @Test
-    void findTop2MasterTopics_returnsFirstTwoInSyllabusOrderForThatTrackOnly() {
+    void findFirstMasterTopic_returnsFirstInSyllabusOrderForThatTrackOnly() {
         Institution institution = institutionRepository.save(new Institution(null, "UOH", "uoh.edu.sa"));
         Course course = new Course();
         course.setTitle("Database Management Systems");
@@ -58,15 +59,15 @@ class TopicFocusRepositoryTest {
         addTopic(course, "Indexing", FocusLevel.MASTER_IT);
         courseRepository.save(course);
 
-        List<String> backend = topicFocusRepository
-                .findTop2ByTopicCourseAndTargetTrackAndFocusLevelOrderByTopicIdAsc(
+        Optional<String> backend = topicFocusRepository
+                .findFirstByTopicCourseAndTargetTrackAndFocusLevelOrderByTopicIdAsc(
                         course, Track.BACKEND_DEVELOPER, FocusLevel.MASTER_IT)
-                .stream().map(f -> f.getTopic().getTitle()).toList();
-        List<TopicFocus> frontend = topicFocusRepository
-                .findTop2ByTopicCourseAndTargetTrackAndFocusLevelOrderByTopicIdAsc(
+                .map(f -> f.getTopic().getTitle());
+        Optional<TopicFocus> frontend = topicFocusRepository
+                .findFirstByTopicCourseAndTargetTrackAndFocusLevelOrderByTopicIdAsc(
                         course, Track.FRONTEND_DEVELOPER, FocusLevel.MASTER_IT);
 
-        assertEquals(List.of("SQL", "Transactions"), backend);
-        assertEquals(0, frontend.size());
+        assertEquals(Optional.of("SQL"), backend);
+        assertTrue(frontend.isEmpty());
     }
 }
