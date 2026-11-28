@@ -115,7 +115,7 @@
   height: 6px;
   border-radius: var(--r-pill);
   background: var(--ink);
-  animation: cl-slide 1.4s ease-in-out infinite;
+  animation: slide 1.4s ease-in-out infinite;
 }
 .doneBar { height: 6px; border-radius: var(--r-pill); background: var(--data); }
 
@@ -152,7 +152,23 @@
   border: 3px solid #D5DAF2;
   border-top-color: var(--backend);
   flex-shrink: 0;
-  animation: cl-spin 0.9s linear infinite;
+  animation: spin 0.9s linear infinite;
+}
+
+/* Keyframes live in this module on purpose: CSS Modules renames the names used in
+   `animation`, so they must be defined here too (global ones in index.css never matched). */
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes slide { 0% { left: -35%; } 100% { left: 100%; } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* Reduced motion: no spinning or sliding, just a slow, subtle pulse while the request runs */
+@media (prefers-reduced-motion: reduce) {
+  .stepSpin { animation: pulse 2.4s ease-in-out infinite; }
+  .slider {
+    left: 0;
+    width: 100%;
+    animation: pulse 2.4s ease-in-out infinite;
+  }
 }
 .stepTodo {
   width: 28px;

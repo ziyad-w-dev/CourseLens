@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getMyCoursesAsDoctor, uploadCourse } from '../api/endpoints';
 import { getSession } from '../auth/session';
-import { CheckIcon, FileIcon, FileUpIcon, FileXIcon, RefreshIcon, TimerIcon, UploadIcon } from '../components/Icons';
+import { CheckIcon, FileIcon, FileUpIcon, FileXIcon, LogoutIcon, RefreshIcon, TimerIcon, UploadIcon } from '../components/Icons';
 import { LogoMark } from '../components/Logo';
+import { useLogout } from '../components/StudentHeader';
 import headerStyles from '../components/Header.module.css';
 import { programName } from '../lib/domain';
 import { formatDate, formatFileSize, initials, plural } from '../lib/format';
@@ -17,6 +18,7 @@ const STEP_MS = 4000;
 
 function ProfHeader() {
   const session = getSession();
+  const logout = useLogout();
   return (
     <header className={headerStyles.header}>
       <div className={headerStyles.profBrand}>
@@ -24,12 +26,19 @@ function ProfHeader() {
         <span className={headerStyles.brandName}>CourseLens</span>
         <span className={headerStyles.profChip}>PROFESSOR</span>
       </div>
-      <div className={headerStyles.user}>
-        <div className={headerStyles.userText}>
-          <span className={headerStyles.userName}>{session?.fullName}</span>
-          <span className={headerStyles.userSub}>Department of {programName(session?.program)}</span>
+      <div className={headerStyles.right}>
+        <div className={headerStyles.user}>
+          <div className={headerStyles.userText}>
+            <span className={headerStyles.userName}>{session?.fullName}</span>
+            <span className={headerStyles.userSub}>Department of {programName(session?.program)}</span>
+          </div>
+          <span className={headerStyles.profAvatar}>{initials(session?.fullName)}</span>
         </div>
-        <span className={headerStyles.profAvatar}>{initials(session?.fullName)}</span>
+        <span className={headerStyles.divider} />
+        <button type="button" onClick={logout} className={headerStyles.logout}>
+          <LogoutIcon size={16} color="#172033" />
+          Log out
+        </button>
       </div>
     </header>
   );

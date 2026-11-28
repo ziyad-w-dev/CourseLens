@@ -106,9 +106,6 @@ h1, h2, h3, p { margin: 0; }
 .serif { font-family: var(--font-serif); }
 .mono { font-family: var(--font-mono); }
 
-@keyframes cl-spin { to { transform: rotate(360deg); } }
-@keyframes cl-slide { 0% { left: -35%; } 100% { left: 100%; } }
-
 .visually-hidden {
   position: absolute !important;
   width: 1px; height: 1px;

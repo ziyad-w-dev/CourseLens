@@ -14,7 +14,8 @@ function CourseCard({ course, track }) {
   const k = course.knowCount ?? 0;
   const n = m + a + k;
   const total = n || 1;
-  const start = course.startWith || [];
+  // title of the first MASTER IT topic in syllabus order, or null when there is none
+  const start = course.startWith;
 
   return (
     <article className={styles.card}>
@@ -31,13 +32,14 @@ function CourseCard({ course, track }) {
         <span className={styles.mixText}>{m} Master · {a} Apply · {k} Know</span>
       </div>
 
-      {m > 0 && start.length > 0 && (
+      {start && (
         <div className={styles.callout} style={{ background: track.tint }}>
           <span className={styles.calloutLabel} style={{ color: track.color }}>START WITH</span>
-          <span className={styles.calloutText}>{start.join(' · ')}</span>
+          <span className={styles.calloutText}>{start}</span>
         </div>
       )}
-      {m === 0 && (
+      {/* a course with no topics yet shows neither box */}
+      {m === 0 && n > 0 && (
         <div className={styles.callout} style={{ background: track.tint }}>
           <span className={styles.calloutLabel} style={{ color: track.color }}>GOOD NEWS</span>
           <span className={styles.calloutText}>Mostly KNOW IT for your track, so a lighter load</span>
